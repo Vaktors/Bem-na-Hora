@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Perfil - Bem Na Hora</title>
+    
+    <!-- Fonte Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="doutorEditar.css">
+</head>
+<body>
+
+    <!-- HEADER (Padrão) -->
+    <header class="header">
+        <div class="logo">
+            <img src="img/logo.png" alt="Bem Na Hora">
+        </div>
+        <nav class="nav">
+            <a href="#" class="nav-button1">Saiba mais</a>
+            <a href="#" class="nav-button2">Consultas</a>
+            <a href="#" class="nav-button3">Torne-se<br>Parceiro</a>
+        </nav>
+        <div class="header-spacer"></div>
+    </header>
+
+    <main class="main-content">
+        <div class="form-container">
+            
+            <div class="page-header">
+                <h1>Editar Perfil Profissional</h1>
+                <p>Mantenha suas informações atualizadas para que os pacientes possam te encontrar facilmente.</p>
+                <div class="separator-line"></div>
+            </div>
+
+            <form class="edit-form">
+                
+                <!-- NOVA SEÇÃO DE FOTO DE PERFIL (Centralizada) -->
+                <div class="profile-photo-section">
+                    <div class="photo-container">
+                        <!-- Placeholder IGUAL ao perfil (div com ícone) -->
+                        <div class="photo-preview">
+                            <i class="fa-solid fa-user-doctor"></i>
+                        </div>
+                        
+                        <label class="change-photo-btn">
+                            <input type="file" accept="image/*" hidden>
+                            <i class="fa-solid fa-camera"></i>
+                        </label>
+                    </div>
+                    <p class="section-help">Esta será a foto exibida na vitrine e no seu perfil.</p>
+                </div>
+
+                <!-- SEÇÃO 1: INFORMAÇÕES DO CARTÃO (Vitrine) -->
+                <section class="form-section">
+                    <h3><i class="fa-solid fa-id-card"></i> Informações do Cartão</h3>
+                    <p class="section-help">Dados essenciais que aparecem no seu cartão na vitrine de busca.</p>
+                    
+                    <div class="form-grid">
+                        <div class="input-group span-2">
+                            <label>Nome de Exibição</label>
+                            <input type="text" value="Dr. Carlos Eduardo" placeholder="Como você quer ser chamado">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Especialidade Principal</label>
+                            <div class="custom-select-wrapper">
+                                <select>
+                                    <option value="cardio" selected>Cardiologia</option>
+                                    <option value="dermato">Dermatologia</option>
+                                    <option value="orto">Ortopedia</option>
+                                    <option value="clini">Clínica Geral</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label>CRM</label>
+                            <input type="text" value="123456-SP" placeholder="000000-UF">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Anos de Experiência</label>
+                            <input type="text" value="15 Anos" placeholder="Ex: 10 Anos">
+                        </div>
+                    </div>
+
+                    <!-- FOCOS DE ATENDIMENTO (Tags Interativas) -->
+                    <div class="input-group full-width mt-3">
+                        <label>Focos de Atendimento</label>
+                        <p class="section-help" style="margin-bottom: 10px;">Selecione as condições ou tratamentos que você realiza (aparecem no cartão).</p>
+                        
+                        <div class="tags-selection">
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked>
+                                <span>Check-up</span>
+                            </label>
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked>
+                                <span>Hipertensão</span>
+                            </label>
+                            <label class="tag-checkbox">
+                                <input type="checkbox">
+                                <span>Arritmia</span>
+                            </label>
+                            <label class="tag-checkbox">
+                                <input type="checkbox">
+                                <span>Insuficiência Cardíaca</span>
+                            </label>
+                            <label class="tag-checkbox">
+                                <input type="checkbox">
+                                <span>Prevenção</span>
+                            </label>
+                            <button type="button" class="add-tag-btn">+ Adicionar outro</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 2: DETALHES DO PERFIL -->
+                <section class="form-section">
+                    <h3><i class="fa-solid fa-user-doctor"></i> Detalhes do Perfil</h3>
+                    <p class="section-help">Informações mais aprofundadas sobre você e sua carreira.</p>
+
+                    <div class="form-grid">
+                        <div class="input-group full-width span-2">
+                            <label>Minha História / Biografia</label>
+                            <textarea rows="6" placeholder="Conte um pouco sobre sua trajetória profissional, formação e abordagem..."></textarea>
+                        </div>
+                        
+                        <div class="input-group full-width span-2">
+                            <label>Formação Acadêmica</label>
+                            <textarea rows="4" placeholder="Ex: Graduação em Medicina pela USP (2010), Residência em Cardiologia..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 3: LOCALIZAÇÃO & CONTATO -->
+                <section class="form-section">
+                    <h3><i class="fa-solid fa-location-dot"></i> Localização & Contato</h3>
+                    <div class="form-grid">
+                        <div class="input-group span-2">
+                            <label>Endereço do Consultório</label>
+                            <input type="text" value="Av. Paulista, 1000 - Conjunto 42">
+                        </div>
+                        <div class="input-group">
+                            <label>Bairro</label>
+                            <input type="text" value="Bela Vista">
+                        </div>
+                        <div class="input-group">
+                            <label>Cidade/UF</label>
+                            <input type="text" value="São Paulo - SP">
+                        </div>
+                        <div class="input-group">
+                            <label>Telefone de Contato (para pacientes)</label>
+                            <input type="tel" value="(11) 99999-9999">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 4: CONVÊNIOS -->
+                <section class="form-section">
+                    <h3><i class="fa-solid fa-notes-medical"></i> Convênios Aceitos</h3>
+                    <div class="tags-selection">
+                        <label class="tag-checkbox blue-theme">
+                            <input type="checkbox" checked>
+                            <span>Unimed</span>
+                        </label>
+                        <label class="tag-checkbox blue-theme">
+                            <input type="checkbox" checked>
+                            <span>Bradesco Saúde</span>
+                        </label>
+                        <label class="tag-checkbox blue-theme">
+                            <input type="checkbox">
+                            <span>Amil</span>
+                        </label>
+                        <label class="tag-checkbox blue-theme">
+                            <input type="checkbox">
+                            <span>SulAmérica</span>
+                        </label>
+                        <label class="tag-checkbox blue-theme">
+                            <input type="checkbox">
+                            <span>Porto Seguro</span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- BOTÕES DE AÇÃO -->
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel">Cancelar</button>
+                    <button type="submit" class="btn-save">Salvar Alterações</button>
+                </div>
+
+            </form>
+        </div>
+    </main>
+
+    <!-- FOOTER (Padrão) -->
+    <footer class="site-footer">
+        <div class="container">
+          <div class="footer-grid">
+            <div>
+              <img src="img/logo-white.png" alt="Bem Na Hora" class="footer-logo">
+              <div class="socials"></div>
+            </div>
+            <div>
+              <h4 class="footer-title">Links Rápidos</h4>
+              <ul class="footer-list">
+                <li><a href="#" class="footer-link">Sobre Nós</a></li>
+                <li><a href="#especialidades" class="footer-link">Especialidades</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="footer-title">Suporte</h4>
+              <ul class="footer-list">
+                <li><a href="#" class="footer-link">Central de Ajuda</a></li>
+                <li><a href="#" class="footer-link">FAQ</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="footer-title">Contato</h4>
+              <ul class="footer-list">
+                <li class="footer-contact">✉️ contato@bemnahora.com</li>
+                <li class="footer-contact">📞 (61) 98234-5678</li>
+              </ul>
+            </div>
+          </div>
+          <div class="footer-copy">&copy; 2025 Bem Na Hora. Todos os direitos reservados.</div>
+        </div>
+    </footer>
+
+</body>
+</html>

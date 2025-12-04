@@ -1,0 +1,794 @@
+/* =========================================================
+   🎨 VARIÁVEIS (HSL para transparência)
+   ========================================================= */
+:root {
+  /* SUAS CORES (Formato numérico para permitir transparência HSL) */
+  --azul-principal: 195 100% 44%;
+  /* #00A7E1 */
+  --preto: 197 100% 10%;
+  /* #00171F */
+  --turques: 205 100% 17%;
+  /* #003459 */
+  --azul-escuro: 195 100% 33%;
+  /* #007EA7 */
+  --branco: 0 0% 100%;
+  /* #FFFFFF */
+
+  /* Aliases para compatibilidade */
+  --text-main: var(--preto);
+  /* Para sua barra de pesquisa funcionar */
+
+  /* Variáveis de layout e novos tons */
+  --fundo-pagina: 205 43% 89%;
+  --texto-suave: 205 30% 40%;
+  --borda-suave: 195 30% 80%;
+  --input-fundo: 195 30% 90%;
+
+  /* Gradientes usando HSL para consistência */
+  --gradiente-hero: linear-gradient(135deg, hsl(195, 100%, 44%) 0%, hsl(195, 100%, 33%) 40%, hsl(205, 100%, 17%) 100%);
+  --gradiente-dark: linear-gradient(135deg, hsl(197, 100%, 10%) 0%, hsl(205, 100%, 17%) 50%, hsl(195, 100%, 33%) 100%);
+
+  /* Sombras */
+  --sombra-suave: 0 4px 20px hsla(195, 100%, 44%, 0.15);
+  --sombra-hover: 0 8px 30px hsla(195, 100%, 44%, 0.25);
+}
+
+/* =========================================================
+   ⚙️ BASE
+   ========================================================= */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: hsl(var(--preto));
+  background: hsl(var(--fundo-pagina));
+  font: 16px/1.5 system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.container {
+  width: min(1120px, 92%);
+  margin: 0 auto;
+  padding-inline: 20px;
+}
+
+.section {
+  padding: 80px 0;
+}
+
+.section-muted {
+  background: hsla(var(--branco) / 0.4);
+}
+
+.section-head {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.section-head-dark {
+  color: hsl(var(--branco));
+}
+
+.section-title {
+  font-size: clamp(28px, 3.5vw, 40px);
+  line-height: 1.1;
+  margin: 0 0 12px;
+  color: hsl(var(--azul-escuro));
+}
+
+.section-desc {
+  color: hsl(var(--texto-suave));
+  font-size: clamp(16px, 2.5vw, 20px);
+  margin: 0 auto;
+  max-width: 720px;
+}
+
+.text-inverse {
+  color: hsl(var(--branco));
+}
+
+.text-inverse-soft {
+  color: hsla(0, 0%, 100%, 0.85);
+}
+
+.muted {
+  color: hsl(var(--texto-suave));
+}
+
+.center {
+  text-align: center;
+}
+
+
+/* =========================================================
+   🧭 SEU HEADER PADRÃO (Adaptado para HSL)
+   ========================================================= */
+.header {
+  background-color: hsl(var(--branco));
+  /* #ffffff */
+  height: 90px;
+  border-bottom: 1px solid hsla(197, 100%, 10%, 0.31);
+  /* #00171f31 adaptado */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 50px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo img {
+  height: 100px;
+  width: auto;
+  padding: 15px 0;
+}
+
+.nav {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+
+.nav a {
+  width: 140px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: hsl(var(--preto));
+  transition: 0.3s;
+}
+
+/* Botão 1 - Azul Principal */
+.nav-button1 {
+  border-bottom: 4px solid hsl(var(--azul-principal));
+  color: hsl(var(--preto));
+}
+
+.nav-button1:hover {
+  background-color: hsl(var(--azul-principal));
+  color: hsl(var(--branco));
+}
+
+/* Botão 2 - Azul Escuro */
+.nav-button2 {
+  border-bottom: 4px solid hsl(var(--azul-escuro));
+  color: hsl(var(--preto));
+}
+
+.nav-button2:hover {
+  background-color: hsl(var(--azul-escuro));
+  color: hsl(var(--branco));
+}
+
+/* Botão 3 - Turquesa */
+.nav-button3 {
+  border-bottom: 4px solid hsl(var(--turques));
+  color: hsl(var(--preto));
+}
+
+.nav-button3:hover {
+  background-color: hsl(var(--turques));
+  color: hsl(var(--branco));
+}
+
+.header-spacer {
+  width: 150px;
+}
+
+
+/* =========================================================
+   🌅 SEÇÃO HERO (ALINHADA COM O CONTAINER)
+   ========================================================= */
+
+/* Ajuste do fundo */
+.bg-gradient-hero {
+  background-image: 
+    linear-gradient(90deg, rgba(0,23,31,0.7) 0%, rgba(0,23,31,0.4) 25%, rgba(0,0,0,0) 60%), 
+    var(--gradiente-hero);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+/* Container principal da Hero */
+.hero {
+  position: relative;
+  overflow: hidden;
+  /* Altura mínima para ficar bonito, mas sem exagerar */
+  min-height: 80vh; 
+  display: flex;
+  align-items: center; /* Centraliza verticalmente (topo-baixo) */
+  justify-content: flex-start; /* Alinha horizontalmente no início (esquerda) */
+  
+  /* IMPORTANTE: Removemos margens negativas e padding extra */
+  margin-left: 0;
+  padding: 0;
+  color: hsl(var(--branco));
+}
+
+/* O bloco que segura o conteúdo */
+.hero-grid {
+    width: 100%;
+    display: block;
+    /* Não precisa de margin aqui, o .container do HTML já cuida das bordas */
+}
+
+/* Coluna da Esquerda (agora ocupa tudo) */
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  /* ALINHAMENTO À ESQUERDA */
+  align-items: flex-start; 
+  justify-content: center;
+  width: 100%;
+  
+  /* Removemos posicionamentos relativos estranhos */
+  left: 0;
+  padding-left: 0;
+}
+
+.hero-content {
+  text-align: left; /* Garante texto à esquerda */
+  width: 100%;
+  /* Define um limite para o texto não ficar muito comprido e difícil de ler */
+  max-width: 900px; 
+}
+
+.hero-title {
+  text-align: left;
+  font-size: clamp(36px, 6vw, 64px);
+  margin: 0 0 16px;
+  font-weight: 800;
+  left: 0;
+  color: hsl(var(--branco));
+}
+
+.hero-title-strong {
+  display: inline-block; /* Ou block, dependendo se quer na mesma linha ou não */
+  color: hsl(var(--branco));
+}
+
+.hero-subtitle {
+  font-size: 20px;
+  opacity: .95;
+  margin: 0 0 40px 0; /* Margem apenas embaixo */
+  max-width: 700px;
+}
+
+/* Barra de Pesquisa */
+.main-search-bar {
+    margin-bottom: 40px; 
+    position: relative;
+    width: 100%;
+    /* Se quiser ela bem larga, use 100% ou aumente o max-width */
+    max-width: 900px; 
+    /* Removemos margin-left auto para ela ficar na esquerda */
+    margin-left: 0; 
+}
+
+/* Estatísticas */
+.stats {
+  display: flex;
+  /* Alinha à esquerda */
+  justify-content: flex-start; 
+  text-align: left;
+  gap: 60px;
+  width: 100%;
+}
+
+.stat-number {
+  font-weight: 800;
+  font-size: clamp(28px, 4vw, 44px);
+  color: hsl(var(--branco));
+  margin-bottom: 6px;
+}
+
+/* Responsivo Mobile */
+@media (max-width: 768px) {
+    .hero {
+        /* No mobile, um pouco de padding vertical ajuda */
+        padding: 60px 0;
+        height: auto;
+        min-height: auto;
+    }
+    
+    .stats {
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+    
+    /* Opcional: No celular talvez você queira centralizado, se não, remova isso */
+    /* .hero-left { align-items: center; } */
+    /* .hero-content { text-align: center; } */
+}
+/* =========================================================
+   🔍 SUA BARRA DE PESQUISA PADRÃO (Adaptada HSL)
+   ========================================================= */
+.main-search-bar {
+  background: white;
+  max-width: 900px;
+  /* margin: 0 auto; removi o auto para alinhar a esquerda na hero se precisar, ou mantenha */
+  width: 100%;
+  border-radius: 50px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 10px 30px hsla(205, 100%, 17%, 0.3);
+  /* Sombra turquesa adaptada */
+  position: relative;
+  top: 0;
+  /* Ajuste conforme necessário dentro da hero */
+  margin-bottom: 40px;
+  /* Espaço para as estatísticas abaixo */
+}
+
+.search-input-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.search-input-group i {
+  color: hsl(var(--azul-escuro));
+  margin-right: 10px;
+  font-size: 1.2rem;
+}
+
+.search-input-group input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  padding: 10px 0;
+  color: hsl(var(--text-main));
+  /* Usa o alias criado no root */
+  background: transparent;
+}
+
+.divider {
+  width: 1px;
+  height: 40px;
+  background-color: #eee;
+}
+
+.btn-search {
+  background-color: hsl(var(--azul-principal));
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 40px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-search:hover {
+  background-color: hsl(var(--turques));
+}
+
+/* RESPONSIVIDADE DA BARRA DE PESQUISA */
+@media (max-width: 768px) {
+  .main-search-bar {
+    flex-direction: column;
+    border-radius: 20px;
+    gap: 10px;
+    padding: 20px;
+  }
+
+  .divider {
+    display: none;
+  }
+
+  .search-input-group {
+    width: 100%;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+  }
+
+  .btn-search {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   📊 ESTATÍSTICAS
+   ========================================================= */
+.stats {
+  display: flex;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 55px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-number {
+  font-weight: 800;
+  font-size: clamp(28px, 4vw, 44px);
+  color: hsl(var(--branco));
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  color: hsla(0, 0%, 100%, 0.85);
+}
+
+
+/* =========================================================
+   🧱 OUTROS COMPONENTES (Cards, Steps, etc.)
+   ========================================================= */
+.grid {
+  display: grid;
+  gap: 24px;
+  justify-items: center;
+}
+
+.grid-4 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-3 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-6 {
+  grid-template-columns: repeat(2, 1fr);
+  margin-bottom: 40px;
+}
+
+@media (min-width: 768px) {
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .grid-6 {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.card {
+  background: hsl(var(--branco));
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--sombra-suave);
+  transition: transform .2s ease;
+  text-align: center;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--sombra-hover);
+}
+
+.card-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: hsl(var(--branco));
+  font-size: 28px;
+  margin: 0 auto 16px;
+}
+
+.card-title {
+  font-size: 20px;
+  margin: 0 0 8px;
+  color: hsl(var(--preto));
+}
+
+.card-text {
+  color: hsl(var(--texto-suave));
+  margin: 0;
+}
+
+.bg-primary {
+  background: hsl(var(--azul-principal));
+}
+
+.bg-secondary {
+  background: hsl(var(--azul-escuro));
+}
+
+.bg-accent {
+  background: hsl(var(--turques));
+}
+
+/* Steps */
+.steps .step {
+  position: relative;
+  text-align: center;
+  background: hsl(var(--branco));
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: var(--sombra-suave);
+}
+
+.step-badge {
+  position: absolute;
+  inset-inline: 0;
+  margin-inline: auto;
+  top: -20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: hsl(var(--branco));
+  font-weight: 800;
+  background: var(--gradiente-hero);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, .1);
+}
+
+.step-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  margin: 12px auto 16px;
+  background: hsla(195, 100%, 44%, 0.1);
+  color: hsl(var(--azul-principal));
+  font-size: 36px;
+}
+
+.step-title {
+  font-size: 22px;
+  margin: 0 0 8px;
+  color: hsl(var(--preto));
+}
+
+.step-text {
+  color: hsl(var(--texto-suave));
+  margin: 0;
+}
+
+/* Categorias */
+.bg-gradient-dark {
+  background: var(--gradiente-dark);
+}
+
+.cat {
+  background: hsla(0, 0%, 100%, 0.06);
+  backdrop-filter: blur(6px);
+  border: 1px solid hsla(0, 0%, 100%, 0.15);
+  color: hsl(var(--branco));
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  display: block;
+  cursor: pointer;
+  transition: transform .2s ease;
+}
+
+.cat:hover {
+  transform: translateY(-4px);
+  background: hsla(0, 0%, 100%, 0.1);
+  border-color: hsl(var(--azul-principal));
+}
+
+.cat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 8px;
+  background: hsla(195, 100%, 44%, 0.2);
+  font-size: 28px;
+  color: hsl(var(--azul-principal));
+}
+
+.cat-title {
+  margin: 0 0 4px;
+  color: hsl(var(--branco));
+  font-weight: 700;
+}
+
+.cat-text {
+  margin: 0;
+  color: hsla(0, 0%, 100%, 0.75);
+  font-size: 14px;
+}
+
+/* CTA */
+.cta {
+  border-radius: 24px;
+  padding: 48px 28px;
+  color: hsl(var(--branco));
+  text-align: center;
+  box-shadow: var(--sombra-hover);
+}
+
+.cta-title {
+  font-size: clamp(28px, 3.5vw, 40px);
+  margin: 0 0 8px;
+}
+
+.cta-desc {
+  margin: 0 0 18px;
+  color: hsla(0, 0%, 100%, 0.9);
+  font-size: 18px;
+}
+
+.cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Botões Gerais */
+.btn {
+  height: 56px;
+  padding: 0 24px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform .2s ease, background .2s ease;
+  font-weight: 600;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-light {
+  background: hsl(var(--branco));
+  color: hsl(var(--azul-principal));
+}
+
+.btn-light:hover {
+  background: hsla(0, 0%, 100%, 0.9);
+}
+
+.btn-outline-light {
+  border-color: hsla(0, 0%, 100%, 0.35);
+  color: hsl(var(--branco));
+}
+
+.btn-outline-light:hover {
+  background: hsl(var(--branco));
+  color: hsl(var(--turques));
+}
+
+
+/* =========================================================
+   ⚓ RODAPÉ
+   ========================================================= */
+.site-footer {
+  background: hsl(var(--preto));
+  color: hsla(0, 0%, 100%, 0.85);
+  padding: 56px 0 28px;
+}
+
+.footer-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(1, 1fr);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .footer-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.brand-footer {
+  color: hsl(var(--branco));
+  margin: 0 0 10px;
+}
+
+.footer-title {
+  color: hsl(var(--branco));
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+
+.footer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.footer-link {
+  color: hsla(0, 0%, 100%, 0.85);
+}
+
+.footer-link:hover {
+  color: hsl(var(--azul-principal));
+}
+
+.footer-copy {
+  border-top: 1px solid hsla(0, 0%, 100%, 0.12);
+  margin-top: 28px;
+  padding-top: 20px;
+  text-align: center;
+  color: hsla(0, 0%, 100%, 0.75);
+  font-size: 14px;
+}
+
+/* Responsivo Mobile */
+@media (max-width: 480px) {
+  .header {
+    padding: 0 20px;
+    height: 70px;
+  }
+
+  .logo img {
+    height: 60px;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  /* Ocultar nav desktop em mobile, precisaria de um menu hamburguer aqui */
+  .hero-content {
+    padding: 0 20px;
+  }
+
+  .hero-left {
+    left: 0;
+    padding: 0;
+  }
+
+  .hero-title {
+    font-size: 32px;
+    text-align: center;
+    left: 0;
+  }
+
+  .stats {
+    flex-direction: column;
+    gap: 20px;
+  }
+}

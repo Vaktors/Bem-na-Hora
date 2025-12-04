@@ -1,0 +1,509 @@
+/* --- VARIÁVEIS GLOBAIS (Consistente com vitrine.css) --- */
+:root {
+    --azul-principal: #00A7E1;
+    --preto: #00171F;
+    --turques: #003459;
+    --azul-escuro: #007EA7;
+    --branco: #FFFFFF;
+    --bg-page: #F7FAFC;
+    --bg-input: #f5f5f5;
+    /* Cor de fundo dos inputs da referência */
+    --cinza-texto: #555;
+    --cinza-label: #333;
+    --borda-suave: #e0e0e0;
+}
+
+/* --- RESET & GERAL --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* --- HEADER (Reutilizado) --- */
+.header {
+    background-color: #ffffff;
+    height: 90px;
+    border-bottom: 1px solid #00171f31;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 50px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo img {
+    height: 100px;
+    width: auto;
+    padding: 15px 0;
+}
+
+.nav {
+    display: flex;
+    height: 100%;
+    align-items: center;
+}
+
+.nav a {
+    width: 140px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--preto);
+    transition: 0.3s;
+}
+
+.nav-button1 {
+    border-bottom: 4px solid var(--azul-principal);
+}
+
+.nav-button1:hover {
+    background-color: var(--azul-principal);
+    color: var(--branco);
+}
+
+.nav-button2 {
+    border-bottom: 4px solid var(--azul-escuro);
+}
+
+.nav-button2:hover {
+    background-color: var(--azul-escuro);
+    color: var(--branco);
+}
+
+.nav-button3 {
+    border-bottom: 4px solid var(--turques);
+}
+
+.nav-button3:hover {
+    background-color: var(--turques);
+    color: var(--branco);
+}
+
+.header-spacer {
+    width: 150px;
+}
+
+/* --- CONTEÚDO PRINCIPAL --- */
+.main-content {
+    flex: 1;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.form-container {
+    max-width: 800px;
+    /* Largura similar à referência */
+    width: 100%;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    color: var(--preto);
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.page-header p {
+    color: var(--cinza-texto);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+}
+
+.separator-line {
+    height: 2px;
+    background-color: var(--azul-principal);
+    /* Linha roxa da referência virou azul */
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+/* --- SEÇÕES DO FORMULÁRIO --- */
+.form-section {
+    margin-bottom: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--borda-suave);
+    /* Separador de seção */
+}
+
+/* Remove a borda da primeira seção para não duplicar com a linha do cabeçalho */
+.form-section:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+
+.form-section h3 {
+    font-size: 1.3rem;
+    color: var(--turques);
+    margin-bottom: 25px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.form-section h3 i {
+    margin-right: 10px;
+    color: var(--azul-principal);
+}
+
+.section-help {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: -15px;
+    margin-bottom: 20px;
+}
+
+/* --- NOVA ÁREA DE FOTO DE PERFIL (Centralizada e Destacada) --- */
+.profile-photo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.photo-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-bottom: 20px;
+}
+
+/* ESTILO DO PLACEHOLDER (IGUAL AO PERFIL) */
+.photo-preview {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    /* Foto perfeitamente redonda */
+    border: 4px solid var(--white);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+
+    /* Estilos do Placeholder */
+    background-color: #d8e6f0;
+    /* Fundo cinza azulado igual perfil */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    /* Ícone grande */
+    color: var(--azul-escuro);
+
+    /* Garante que se for uma <img> também funcione */
+    object-fit: cover;
+}
+
+.change-photo-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: var(--azul-principal);
+    color: white;
+    border: 3px solid var(--white);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background-color 0.3s, transform 0.2s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.change-photo-btn:hover {
+    background-color: var(--turques);
+    transform: scale(1.05);
+}
+
+/* --- GRID DO FORMULÁRIO --- */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 30px;
+    /* Gap vertical / horizontal */
+}
+
+.span-2 {
+    grid-column: span 2;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.mt-3 {
+    margin-top: 20px;
+}
+
+/* INPUTS (Estilo Frame 139) */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-group label {
+    font-size: 0.9rem;
+    color: var(--cinza-label);
+    font-weight: 500;
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: var(--bg-input);
+    /* #f5f5f5 */
+    border: 1px solid transparent;
+    /* Sem borda visível inicialmente, como na ref */
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    color: var(--preto);
+    transition: 0.3s;
+}
+
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus {
+    outline: none;
+    background-color: white;
+    border-color: var(--azul-principal);
+    box-shadow: 0 0 0 3px rgba(0, 167, 225, 0.1);
+}
+
+.input-group textarea {
+    resize: vertical;
+}
+
+/* --- TAGS / PILLS (Estilo Referência) --- */
+.tags-selection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Esconde o checkbox real */
+.tag-checkbox input {
+    display: none;
+}
+
+/* O visual do botão (Span) */
+.tag-checkbox span {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    color: #666;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid transparent;
+}
+
+/* Estado Selecionado (Tema Roxo da ref adaptado para Turquesa Suave) */
+.tag-checkbox input:checked+span {
+    background-color: #dbeafe;
+    /* Azul bem clarinho */
+    color: var(--azul-escuro);
+    border-color: var(--azul-principal);
+    font-weight: 500;
+}
+
+/* Tema Azul (para convênios, diferenciar visualmente) */
+.blue-theme input:checked+span {
+    background-color: #e0f2fe;
+    color: var(--turques);
+    border-color: var(--turques);
+}
+
+.add-tag-btn {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 8px 10px;
+}
+
+.add-tag-btn:hover {
+    color: var(--azul-principal);
+    text-decoration: underline;
+}
+
+/* --- BOTÕES DE AÇÃO --- */
+.form-actions {
+    display: flex;
+    gap: 20px;
+    margin-top: 50px;
+    margin-bottom: 20px;
+    justify-content: center;
+    /* Centraliza os botões */
+}
+
+.btn-save {
+    padding: 14px 40px;
+    /* Botões um pouco mais largos */
+    background-color: var(--turques);
+    /* Roxo da ref virou Turquesa */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-save:hover {
+    background-color: var(--azul-principal);
+}
+
+.btn-cancel {
+    padding: 14px 30px;
+    background-color: transparent;
+    color: #666;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-cancel:hover {
+    background-color: #f0f0f0;
+    color: var(--preto);
+}
+
+/* --- FOOTER (Reutilizado) --- */
+.site-footer {
+    background-color: var(--preto);
+    color: rgba(255, 255, 255, 0.85);
+    padding: 56px 0 28px;
+    margin-top: auto;
+    /* Empurra footer para baixo se conteúdo for curto */
+}
+
+.site-footer .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-grid {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: repeat(1, 1fr);
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .footer-grid {
+        grid-template-columns: repeat(4, 1fr);
+        text-align: left;
+    }
+}
+
+.footer-logo {
+    height: 100px;
+    width: auto;
+    margin-bottom: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 768px) {
+    .footer-logo {
+        margin-left: 0;
+    }
+}
+
+.footer-title {
+    color: var(--branco);
+    margin: 0 0 10px;
+    font-weight: 700;
+}
+
+.footer-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.footer-link {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: color 0.3s;
+    font-size: 0.95rem;
+}
+
+.footer-link:hover {
+    color: var(--azul-principal);
+}
+
+.footer-contact {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.footer-copy {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    margin-top: 28px;
+    padding-top: 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 14px;
+}
+
+/* --- RESPONSIVIDADE --- */
+@media screen and (max-width: 900px) {
+    .header {
+        padding: 0 20px;
+    }
+
+    .nav,
+    .header-spacer {
+        display: none;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .span-2 {
+        grid-column: span 1;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-save,
+    .btn-cancel {
+        width: 100%;
+    }
+}

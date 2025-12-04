@@ -1,0 +1,27 @@
+function switchTab(tabId) {
+    // 1. Remove a classe 'active' de todas as abas (li)
+    const navItems = document.querySelectorAll('.profile-tabs li');
+    navItems.forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // 2. Esconde todo o conteúdo
+    const panes = document.querySelectorAll('.tab-pane');
+    panes.forEach(pane => {
+        pane.classList.remove('active-pane');
+    });
+
+    // 3. Adiciona 'active' na aba clicada
+    // (Como a função é chamada no onclick, precisamos identificar qual elemento chamou)
+    // Uma forma segura é buscar pelo texto ou passar 'event'
+    // Aqui vamos iterar para achar qual tem o onclick correspondente ou usar o event.target se passado
+    
+    // Simplificação: vamos usar o event.currentTarget
+    event.currentTarget.classList.add('active');
+
+    // 4. Mostra o conteúdo correspondente ao ID
+    const activePane = document.getElementById(tabId);
+    if (activePane) {
+        activePane.classList.add('active-pane');
+    }
+}

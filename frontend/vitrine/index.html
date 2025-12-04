@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encontre Profissionais - Bem Na Hora</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="vitrine.css">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">
+            <img src="img/logo.png" alt="Bem Na Hora">
+        </div>
+        <nav class="nav">
+            <a href="#" class="nav-button1">Saiba mais</a>
+            <a href="#" class="nav-button2">Consultas</a>
+            <a href="#" class="nav-button3">Torne-se<br>Parceiro</a>
+        </nav>
+        <div class="header-spacer"></div>
+    </header>
+
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>Encontre o especialista ideal<br><span class="highlight">Bem Na Hora</span> que você precisa</h1>
+
+            <div class="main-search-bar">
+                <div class="search-input-group">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Ex: Cardiologista, Clínica Geral...">
+                </div>
+                <div class="divider"></div>
+                <div class="search-input-group">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <input type="text" placeholder="Localização (Cidade ou Bairro)">
+                </div>
+                <button class="btn-search">Pesquisar</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-container">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <!-- Toggle Clínica vs Profissional -->
+                <div class="filter-group">
+                    <div class="type-toggle-container">
+                        <input type="radio" name="type" id="type-pro" checked>
+                        <label for="type-pro">Profissional</label>
+
+                        <input type="radio" name="type" id="type-clinic">
+                        <label for="type-clinic">Clínica</label>
+
+                        <div class="toggle-background"></div>
+                    </div>
+                </div>
+
+                <!-- Especialidade (Select) -->
+                <div class="filter-group">
+                    <label class="filter-label">Especialidade</label>
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select">
+                            <span class="selected-option">Todas as especialidades</span>
+                            <ul class="custom-options">
+                                <li data-value="">Todas as especialidades</li>
+                                <li data-value="cardio">Cardiologia</li>
+                                <li data-value="dermato">Dermatologia</li>
+                                <li data-value="orto">Ortopedia</li>
+                                <li data-value="psico">Psicologia</li>
+                            </ul>
+                        </div>
+                        <select name="especialidade" style="display:none;">
+                            <option value="">Todas as especialidades</option>
+                            <option value="cardio">Cardiologia</option>
+                            <option value="dermato">Dermatologia</option>
+                            <option value="orto">Ortopedia</option>
+                            <option value="psico">Psicologia</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Modalidade (Checkbox) -->
+                <div class="filter-group">
+                    <label class="filter-label">Modalidade</label>
+                    <label class="custom-checkbox">
+                        <input type="checkbox" checked>
+                        <span class="checkmark"></span>
+                        Presencial
+                        <span class="count">120</span>
+                    </label>
+                    <label class="custom-checkbox">
+                        <input type="checkbox">
+                        <span class="checkmark"></span>
+                        Telemedicina
+                        <span class="count">45</span>
+                    </label>
+                    <label class="custom-checkbox">
+                        <input type="checkbox">
+                        <span class="checkmark"></span>
+                        Domiciliar
+                        <span class="count">12</span>
+                    </label>
+                </div>
+
+                <!-- Faixa de Preço (Slider) -->
+                <div class="filter-group">
+                    <div class="price-header">
+                        <label class="filter-label">Valor da Consulta</label>
+                        <span id="price-value">Até R$ 300</span>
+                    </div>
+                    <input type="range" min="50" max="999" value="300" class="price-slider" id="price-range">
+
+                    <div class="price-labels">
+                        <span>R$ 50</span>
+                        <span>R$ 999+</span>
+                    </div>
+                </div>
+
+                <!-- Filtros Extras (Switch) -->
+                <div class="filter-group">
+                    <label class="filter-label">Outros Filtros</label>
+
+                    <div class="switch-row">
+                        <span>Aceita Convênio</span>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="switch-row">
+                        <span>Estacionamento</span>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="switch-row">
+                        <span>Acessibilidade</span>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- RESULTADOS (Cards) -->
+        <section class="results-area">
+            <div class="results-header">
+                <h3>145 Profissionais encontrados</h3>
+                <div class="sort-wrapper">
+                    <span>Ordenar por:</span>
+
+                    <div class="custom-select-wrapper" style="width: 200px;">
+                        <div class="custom-select">
+                            <span class="selected-option">Relevância</span>
+                            <ul class="custom-options">
+                                <li data-value="relevancia">Relevância</li>
+                                <li data-value="preco_menor">Menor Preço</li>
+                                <li data-value="avaliacao">Melhor Avaliação</li>
+                            </ul>
+                        </div>
+                        <select name="ordenar" style="display:none;">
+                            <option value="relevancia">Relevância</option>
+                            <option value="preco_menor">Menor Preço</option>
+                            <option value="avaliacao">Melhor Avaliação</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 1: Profissional -->
+            <div class="card-item">
+                <div class="card-logo">
+                    <!-- Icone representando foto -->
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+                <div class="card-info">
+                    <div class="card-header-info">
+                        <h4>Dr. Carlos Eduardo</h4>
+                        <span class="badge badge-pro">Profissional</span>
+                    </div>
+                    <p class="specialty">Cardiologista • 15 anos de exp.</p>
+                    <div class="card-tags">
+                        <span class="tag">Unimed</span>
+                        <span class="tag">Bradesco</span>
+                        <span class="tag">Particular</span>
+                    </div>
+                    <div class="location-info">
+                        <i class="fa-solid fa-map-pin"></i> Centro, São Paulo - SP
+                    </div>
+                </div>
+                <div class="card-action">
+                    <div class="price-tag">
+                        <span>Consulta</span>
+                        <strong>R$ 250,00</strong>
+                    </div>
+                    <a href="#" class="btn-view">Ver Perfil <i class="fa-solid fa-arrow-right"></i></a>
+                    <span class="last-seen">Agenda aberta hoje</span>
+                </div>
+            </div>
+
+            <!-- CARD 2: Clínica -->
+            <div class="card-item">
+                <div class="card-logo logo-clinic">
+                    <i class="fa-solid fa-hospital"></i>
+                </div>
+                <div class="card-info">
+                    <div class="card-header-info">
+                        <h4>Clínica Bem Estar</h4>
+                        <span class="badge badge-clinic">Clínica</span>
+                    </div>
+                    <p class="specialty">Multidisciplinar • Fisioterapia e Ortopedia</p>
+                    <div class="card-tags">
+                        <span class="tag">Amil</span>
+                        <span class="tag">SulAmérica</span>
+                        <span class="tag">Particular</span>
+                    </div>
+                    <div class="location-info">
+                        <i class="fa-solid fa-map-pin"></i> Vila Mariana, São Paulo - SP
+                    </div>
+                </div>
+                <div class="card-action">
+                    <div class="price-tag">
+                        <span>A partir de</span>
+                        <strong>R$ 180,00</strong>
+                    </div>
+                    <a href="#" class="btn-view">Ver Clínica <i class="fa-solid fa-arrow-right"></i></a>
+                    <span class="last-seen">3 profissionais disponíveis</span>
+                </div>
+            </div>
+
+            <!-- CARD 3: Profissional -->
+            <div class="card-item">
+                <div class="card-logo">
+                    <i class="fa-solid fa-user-nurse"></i>
+                </div>
+                <div class="card-info">
+                    <div class="card-header-info">
+                        <h4>Dra. Ana Beatriz</h4>
+                        <span class="badge badge-pro">Profissional</span>
+                    </div>
+                    <p class="specialty">Dermatologista • Estética Avançada</p>
+                    <div class="card-tags">
+                        <span class="tag">Particular</span>
+                        <span class="tag">Reembolso</span>
+                    </div>
+                    <div class="location-info">
+                        <i class="fa-solid fa-video"></i> Atende Online e Presencial
+                    </div>
+                </div>
+                <div class="card-action">
+                    <div class="price-tag">
+                        <span>Consulta</span>
+                        <strong>R$ 350,00</strong>
+                    </div>
+                    <a href="#" class="btn-view">Ver Perfil <i class="fa-solid fa-arrow-right"></i></a>
+                    <span class="last-seen">Próxima data: Amanhã</span>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- FOOTER ADICIONADO -->
+    <footer class="site-footer">
+        <div class="container">
+          <div class="footer-grid">
+            <div>
+              <!-- LOGO IMAGEM -->
+              <img src="img/logoBranco.png" alt="Bem Na Hora" class="footer-logo">
+              <div class="socials">
+              </div>
+            </div>
+            <div>
+              <h4 class="footer-title">Links Rápidos</h4>
+              <ul class="footer-list">
+                <li><a href="#" class="footer-link">Sobre Nós</a></li>
+                <li><a href="#especialidades" class="footer-link">Especialidades</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="footer-title">Suporte</h4>
+              <ul class="footer-list">
+                <li><a href="#" class="footer-link">Central de Ajuda</a></li>
+                <li><a href="#" class="footer-link">FAQ</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="footer-title">Contato</h4>
+              <ul class="footer-list">
+                <li class="footer-contact">✉️ contato@bemnahora.com</li>
+                <li class="footer-contact">📞 (61) 98234-5678</li>
+              </ul>
+            </div>
+          </div>
+          <div class="footer-copy">&copy; 2025 Bem Na Hora. Todos os direitos reservados.</div>
+        </div>
+    </footer>
+
+    <script src="vitrine.js"></script>
+</body>
+
+</html>
