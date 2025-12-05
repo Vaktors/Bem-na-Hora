@@ -33,6 +33,14 @@
   --sombra-hover: 0 8px 30px hsla(195, 100%, 44%, 0.25);
 }
 
+@keyframes shake {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+  100% { transform: rotate(0deg); }
+}
+
 /* =========================================================
    ⚙️ BASE
    ========================================================= */
@@ -127,13 +135,21 @@ a {
   height: 90px;
   border-bottom: 1px solid hsla(197, 100%, 10%, 0.31);
   /* #00171f31 adaptado */
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   padding: 0 50px;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
+}
+
+.header-right {
+  width: 88px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .logo img {
@@ -142,15 +158,20 @@ a {
   padding: 15px 0;
 }
 
+.logo img:hover {
+  animation: shake 0.5s;
+}
+
 .nav {
   display: flex;
   height: 100%;
   align-items: center;
+  justify-content: center;
 }
 
 .nav a {
   width: 140px;
-  height: 90px;
+  height: 79.800px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,8 +213,91 @@ a {
   color: hsl(var(--branco));
 }
 
-.header-spacer {
-  width: 150px;
+/* ---- DROPDOWN DO PERFIL BONITO ---- */
+
+.profile-pic {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: visible; /* importante */
+  cursor: pointer;
+  transition: transform .2s ease;
+  background-color: hsl(var(--azul-principal)); /* Fallback background if image doesn't load */
+}
+
+.profile-pic:hover {
+  transform: scale(1.05);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px 0;
+
+  min-width: 180px;
+
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px) scale(.97);
+  transform-origin: top right;
+
+  transition: 
+    opacity .25s ease,
+    transform .25s ease,
+    visibility .25s;
+  z-index: 9999;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.dropdown-item {
+  padding: 12px 18px;
+  font-size: 15px;
+  color: #00171f;
+  font-weight: 500;
+  transition: background .2s ease, padding-left .2s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(0, 169, 225, 0.041); /* leve azul */
+  width: 5px;
+  height: 10px;
+  padding-left: 10px;
+  border-radius: 25%;
+}
+
+/* Linha separadora opcional */
+.dropdown-divider {
+  height: 1px;
+  margin: 6px 0;
+  background: rgba(0,0,0,.08);
+}
+
+/* Botão Login */
+.btn-login {
+  background-color: hsl(var(--azul-principal));
+  color: hsl(var(--branco));
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-login:hover {
+  background-color: hsl(var(--turques));
 }
 
 
@@ -707,16 +811,29 @@ a {
   padding: 56px 0 28px;
 }
 
+
+.footer-logo {
+  height: 120px;
+  margin-bottom: 8px;
+  }
+
+.footer-logo:hover {
+  animation: shake 0.5s;
+}
+
 .footer-grid {
-  display: grid;
+  display: flex;
+  flex-direction: row;
   gap: 24px;
-  grid-template-columns: repeat(1, 1fr);
+  justify-content: space-between;
+  align-items: flex-start;
   text-align: center;
 }
 
-@media (min-width: 768px) {
+@media (max-width: 767px) {
   .footer-grid {
-    grid-template-columns: repeat(4, 1fr);
+    flex-direction: column;
+    gap: 24px;
   }
 }
 
@@ -747,6 +864,33 @@ a {
   color: hsl(var(--azul-principal));
 }
 
+
+
+.socials {
+  display: flex;
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.social-link {
+  color: hsla(0, 0%, 100%, 0.85);
+  font-size: 24px;
+  transition: color 0.3s;
+}
+#insta:hover {
+  color: rgb(253, 12, 153)
+}
+
+#face:hover {
+  color: rgb(0, 66, 248)
+  }
+
+#twi:hover {
+  color: hsl(var(--azul-principal));
+
+}
 .footer-copy {
   border-top: 1px solid hsla(0, 0%, 100%, 0.12);
   margin-top: 28px;

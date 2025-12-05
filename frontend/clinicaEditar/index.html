@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Perfil - Bem Na Hora</title>
+    <title>Editar Clínica - Bem Na Hora</title>
     
     <!-- Fonte Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12,11 +12,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="doutorEditar.css">
+    <link rel="stylesheet" href="clinicaEditar.css">
 </head>
 <body>
 
-    <!-- HEADER -->
+    <!-- HEADER (Mantido Padrão) -->
     <header class="header">
         <div class="logo">
             <img src="img/logo.png" alt="Bem Na Hora">
@@ -33,94 +33,145 @@
         <div class="form-container">
             
             <div class="page-header">
-                <h1>Editar Perfil Profissional</h1>
-                <p>Mantenha suas informações atualizadas para que os pacientes possam te encontrar facilmente.</p>
+                <h1>Editar Perfil da Clínica</h1>
+                <p>Gerencie as informações institucionais, corpo clínico e serviços oferecidos.</p>
                 <div class="separator-line"></div>
             </div>
 
-            <form class="edit-form" id="form-perfil">
+            <form class="edit-form" id="form-clinica">
                 
-                <!-- FOTO DE PERFIL -->
+                <!-- LOGO DA CLÍNICA -->
                 <div class="profile-photo-section">
                     <div class="photo-container">
                         <div class="photo-preview" id="photo-preview">
-                            <i class="fa-solid fa-user-doctor"></i>
+                            <i class="fa-solid fa-hospital"></i>
                         </div>
                         <label class="change-photo-btn">
                             <input type="file" id="input-foto" accept="image/*" hidden>
                             <i class="fa-solid fa-camera"></i>
                         </label>
                     </div>
-                    <p class="section-help">Esta será a foto exibida na vitrine e no seu perfil.</p>
+                    <p class="section-help">Logo da clínica (será exibido redondo ou ajustado).</p>
                 </div>
 
-                <!-- SEÇÃO 1: INFORMAÇÕES DO CARTÃO -->
+                <!-- SEÇÃO 1: DADOS INSTITUCIONAIS -->
                 <section class="form-section">
-                    <h3><i class="fa-solid fa-id-card"></i> Informações do Cartão</h3>
-                    <p class="section-help">Dados essenciais que aparecem no seu cartão na vitrine de busca.</p>
+                    <h3><i class="fa-solid fa-hospital-user"></i> Dados Institucionais</h3>
                     
                     <div class="form-grid">
                         <div class="input-group span-2">
-                            <label>Nome de Exibição</label>
-                            <input type="text" id="nome-exibicao" value="Dr. Carlos Eduardo" placeholder="Como você quer ser chamado">
+                            <label>Nome da Clínica</label>
+                            <input type="text" id="nome-clinica" value="Clínica Bem Estar Integral" placeholder="Nome Fantasia">
                         </div>
 
                         <div class="input-group">
-                            <label>Especialidade Principal</label>
-                            <input type="text" id="especialidade-input" value="Cardiologia" placeholder="Ex: Cardiologia, Dermatologia...">
+                            <label>Tipo de Estabelecimento</label>
+                            <input type="text" id="tipo-clinica" value="Multidisciplinar" placeholder="Ex: Laboratório, Clínica Geral...">
                         </div>
 
                         <div class="input-group">
-                            <label>Anos de Experiência</label>
-                            <input type="text" id="anos-experiencia" value="15 Anos" placeholder="Ex: 10 Anos">
+                            <label>Ano de Fundação</label>
+                            <input type="number" id="ano-fundacao" value="2005" placeholder="Ex: 2010">
+                        </div>
+
+                        <div class="input-group span-2">
+                            <label>Diretor Técnico (Nome e CRM)</label>
+                            <input type="text" id="diretor-tecnico" value="Dr. Silva (CRM 123)" placeholder="Ex: Dr. Fulano (CRM 12345)">
                         </div>
                     </div>
 
-                    <!-- FOCOS DE ATENDIMENTO -->
-                    <div class="input-group full-width mt-3">
-                        <label>Focos de Atendimento</label>
-                        <p class="section-help" style="margin-bottom: 10px;">Selecione as condições ou tratamentos que você realiza.</p>
-                        
-                        <div class="tags-selection" id="focos-container">
-                            <label class="tag-checkbox">
-                                <input type="checkbox" checked value="Check-up">
-                                <span>Check-up</span>
-                            </label>
-                            <label class="tag-checkbox">
-                                <input type="checkbox" checked value="Hipertensão">
-                                <span>Hipertensão</span>
-                            </label>
-                            <label class="tag-checkbox">
-                                <input type="checkbox" value="Arritmia">
-                                <span>Arritmia</span>
-                            </label>
-                            <label class="tag-checkbox">
-                                <input type="checkbox" value="Insuficiência Cardíaca">
-                                <span>Insuficiência Cardíaca</span>
-                            </label>
-                            <label class="tag-checkbox">
-                                <input type="checkbox" value="Prevenção">
-                                <span>Prevenção</span>
-                            </label>
-                            <button type="button" class="add-tag-btn" id="btn-add-foco">+ Adicionar outro</button>
+                    <!-- REDES SOCIAIS -->
+                    <div class="form-grid mt-3">
+                        <div class="input-group">
+                            <label>Site Oficial</label>
+                            <input type="text" id="site-clinica" placeholder="www.suaclinica.com.br">
+                        </div>
+                        <div class="input-group">
+                            <label>Instagram</label>
+                            <input type="text" id="insta-clinica" placeholder="@suaclinica">
                         </div>
                     </div>
                 </section>
 
-                <!-- SEÇÃO 2: SERVIÇOS E PREÇOS -->
+                <!-- SEÇÃO 2: INFRAESTRUTURA -->
                 <section class="form-section">
-                    <h3><i class="fa-solid fa-list-check"></i> Serviços e Preços</h3>
-                    <p class="section-help">Adicione os serviços que você oferece (Máx. 10).</p>
+                    <h3><i class="fa-solid fa-building"></i> Infraestrutura e Facilidades</h3>
+                    <div class="input-group full-width">
+                        <label>Facilidades Disponíveis</label>
+                        <p class="section-help" style="margin-bottom: 10px;">Adicione tags como Estacionamento, Wi-Fi, Acessibilidade.</p>
+                        
+                        <div class="tags-selection" id="infra-container">
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked value="Acessibilidade">
+                                <span><i class="fa-solid fa-wheelchair"></i> Acessibilidade</span>
+                            </label>
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked value="Estacionamento">
+                                <span><i class="fa-solid fa-square-parking"></i> Estacionamento</span>
+                            </label>
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked value="Wi-Fi Grátis">
+                                <span><i class="fa-solid fa-wifi"></i> Wi-Fi Grátis</span>
+                            </label>
+                            <label class="tag-checkbox">
+                                <input type="checkbox" value="Cafeteria">
+                                <span><i class="fa-solid fa-mug-hot"></i> Cafeteria</span>
+                            </label>
+                            <label class="tag-checkbox">
+                                <input type="checkbox" value="Espaço Kids">
+                                <span><i class="fa-solid fa-child"></i> Espaço Kids</span>
+                            </label>
+                            <button type="button" class="add-tag-btn" id="btn-add-infra">+ Adicionar outro</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 3: CORPO CLÍNICO (NOVO) -->
+                <section class="form-section">
+                    <h3><i class="fa-solid fa-user-doctor"></i> Corpo Clínico</h3>
+                    <p class="section-help">Adicione os principais especialistas da sua equipe.</p>
+
+                    <div class="service-input-area" style="background-color: #f0f7ff; border: 1px dashed var(--azul-escuro);">
+                        <div class="form-grid compact-grid">
+                            <div class="input-group span-2-mobile" style="flex: 2;">
+                                <label>Nome do Especialista</label>
+                                <input type="text" id="membro-nome" placeholder="Ex: Dr. Carlos Eduardo">
+                            </div>
+                            <div class="input-group span-2-mobile" style="flex: 1;">
+                                <label>Especialidade</label>
+                                <input type="text" id="membro-especialidade" placeholder="Ex: Cardiologia">
+                            </div>
+                            <div class="input-group span-2-mobile" style="flex: 1;">
+                                <label>Experiência</label>
+                                <input type="text" id="membro-xp" placeholder="Ex: 15 anos">
+                            </div>
+                            <div class="input-group" style="justify-content: flex-end;">
+                                <button type="button" id="btn-add-membro" class="btn-add-service">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="equipe-container" class="services-container grid-equipe">
+                        <!-- Cards de Membros via JS -->
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 4: EXAMES E PROCEDIMENTOS -->
+                <section class="form-section">
+                    <h3><i class="fa-solid fa-list-check"></i> Exames e Procedimentos</h3>
+                    <p class="section-help">Liste os principais exames realizados na clínica.</p>
 
                     <div class="service-input-area">
                         <div class="form-grid compact-grid">
                             <div class="input-group span-2-mobile" style="flex: 2;">
-                                <label>Nome do Serviço</label>
-                                <input type="text" id="service-name" placeholder="Ex: Consulta de Rotina">
+                                <label>Nome do Procedimento</label>
+                                <input type="text" id="service-name" placeholder="Ex: Ultrassonografia Geral">
                             </div>
                             <div class="input-group span-2-mobile" style="flex: 1;">
-                                <label>Valor (R$)</label>
-                                <input type="text" id="service-price" placeholder="Ex: 350,00">
+                                <label>Valor (A partir de)</label>
+                                <input type="text" id="service-price" placeholder="Ex: 120,00">
                             </div>
                             <div class="input-group" style="justify-content: flex-end;">
                                 <button type="button" id="add-service-btn" class="btn-add-service">
@@ -133,100 +184,73 @@
                     <div id="services-container" class="services-container">
                         <!-- Cards via JS -->
                     </div>
-                    <p id="service-counter" class="counter-text">0/10 serviços criados</p>
+                    <p id="service-counter" class="counter-text">0/15 serviços criados</p>
                 </section>
 
-                <!-- SEÇÃO 3: DETALHES -->
+                <!-- SEÇÃO 5: SOBRE A CLÍNICA -->
                 <section class="form-section">
-                    <h3><i class="fa-solid fa-user-doctor"></i> Detalhes do Perfil</h3>
+                    <h3><i class="fa-solid fa-circle-info"></i> Sobre a Clínica</h3>
                     <div class="form-grid">
                         <div class="input-group full-width span-2">
-                            <label>Minha História / Biografia</label>
-                            <textarea rows="6" id="biografia" placeholder="Conte um pouco sobre sua trajetória profissional..."></textarea>
+                            <label>História e Missão</label>
+                            <textarea rows="6" id="historia" placeholder="Conte sobre a fundação, missão e valores da clínica..."></textarea>
                         </div>
                         
-                        <div class="input-group full-width span-2">
-                            <label>Formação Acadêmica</label>
-                            <p class="section-help">Liste suas graduações, residências e especializações.</p>
+                        <!-- NOVO: GALERIA DE FOTOS -->
+                        <div class="input-group full-width span-2 mt-3">
+                            <label>Galeria de Fotos (Nossa Estrutura)</label>
+                            <p class="section-help">Adicione fotos da recepção, consultórios e equipamentos.</p>
                             
-                            <div class="service-input-area" style="background-color: #fcfcfc; border-style: dotted;">
-                                <div class="form-grid compact-grid">
-                                    <div class="input-group span-2-mobile" style="flex: 2;">
-                                        <label>Curso / Grau</label>
-                                        <input type="text" id="formacao-curso" placeholder="Ex: Graduação em Medicina">
-                                    </div>
-                                    <div class="input-group span-2-mobile" style="flex: 1;">
-                                        <label>Instituição / Ano</label>
-                                        <input type="text" id="formacao-inst" placeholder="Ex: USP - 2010">
-                                    </div>
-                                    <div class="input-group" style="justify-content: flex-end;">
-                                        <button type="button" id="btn-add-formacao" class="btn-add-service" style="background-color: var(--azul-escuro);">
-                                            <i class="fa-solid fa-plus"></i> Adicionar
-                                        </button>
-                                    </div>
-                                </div>
+                            <!-- Área de Upload -->
+                            <div class="gallery-upload-area" onclick="document.getElementById('input-galeria').click()">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>Clique para selecionar fotos</span>
+                                <input type="file" id="input-galeria" multiple accept="image/*" hidden>
                             </div>
 
-                            <div id="formacao-container" class="services-container">
-                                <!-- Cards de Formação via JS -->
+                            <!-- Grid de Previews -->
+                            <div id="galeria-container" class="gallery-grid-edit">
+                                <!-- As imagens aparecerão aqui -->
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- SEÇÃO 4: LOCALIZAÇÃO & CONTATO -->
+                <!-- SEÇÃO 6: LOCALIZAÇÃO & HORÁRIOS -->
                 <section class="form-section">
-                    <h3><i class="fa-solid fa-location-dot"></i> Localização & Contato</h3>
+                    <h3><i class="fa-solid fa-map-location-dot"></i> Localização & Horários</h3>
                     
-                    <div class="input-group full-width mb-3">
-                        <label>Modalidades de Atendimento</label>
-                        <div class="tags-selection">
-                            <label class="tag-checkbox">
-                                <input type="checkbox" checked value="Presencial">
-                                <span><i class="fa-solid fa-building-user"></i> Presencial</span>
-                            </label>
-                            <label class="tag-checkbox">
-                                <input type="checkbox" value="Telemedicina">
-                                <span><i class="fa-solid fa-video"></i> Telemedicina</span>
-                            </label>
-                            <label class="tag-checkbox">
-                                <input type="checkbox" value="Domiciliar">
-                                <span><i class="fa-solid fa-house-medical"></i> Domiciliar</span>
-                            </label>
-                        </div>
-                    </div>
-
                     <div class="form-grid">
                         <div class="input-group span-2">
-                            <label>Endereço do Consultório</label>
-                            <input type="text" id="endereco" value="Av. Paulista, 1000 - Conjunto 42">
+                            <label>Endereço Completo</label>
+                            <input type="text" id="endereco" value="Rua Domingos de Morais, 500">
                         </div>
                         <div class="input-group">
                             <label>Bairro</label>
-                            <input type="text" id="bairro" value="Bela Vista">
+                            <input type="text" id="bairro" value="Vila Mariana">
                         </div>
                         <div class="input-group">
                             <label>Cidade/UF</label>
                             <input type="text" id="cidade" value="São Paulo - SP">
                         </div>
                         <div class="input-group span-2">
-                            <label>Telefone de Contato</label>
-                            <input type="tel" id="telefone" value="(11) 99999-9999">
+                            <label>Telefone / WhatsApp</label>
+                            <input type="tel" id="telefone" value="(11) 98234-5678">
                         </div>
 
-                        <!-- NOVO: HORÁRIO DE FUNCIONAMENTO -->
+                        <!-- Horários -->
                         <div class="input-group">
                             <label>Horário (Segunda a Sexta)</label>
-                            <input type="text" id="horario-semana" value="08:00 às 18:00">
+                            <input type="text" id="horario-semana" value="07:00 - 20:00">
                         </div>
                         <div class="input-group">
                             <label>Horário (Finais de Semana)</label>
-                            <input type="text" id="horario-fim-semana" value="Sáb: 08:00 às 12:00">
+                            <input type="text" id="horario-fim-semana" value="Sáb: 07:00 - 14:00">
                         </div>
                     </div>
                 </section>
 
-                <!-- SEÇÃO 5: CONVÊNIOS -->
+                <!-- SEÇÃO 7: CONVÊNIOS -->
                 <section class="form-section">
                     <h3><i class="fa-solid fa-notes-medical"></i> Convênios Aceitos</h3>
                     <div class="tags-selection" id="convenios-container">
@@ -254,13 +278,9 @@
                             <input type="checkbox" value="NotreDame Intermédica">
                             <span>NotreDame Intermédica</span>
                         </label>
-                         <label class="tag-checkbox blue-theme">
+                        <label class="tag-checkbox blue-theme">
                             <input type="checkbox" value="Hapvida">
                             <span>Hapvida</span>
-                        </label>
-                        <label class="tag-checkbox blue-theme">
-                            <input type="checkbox" value="Golden Cross">
-                            <span>Golden Cross</span>
                         </label>
                         <label class="tag-checkbox blue-theme">
                             <input type="checkbox" value="Allianz">
@@ -274,17 +294,13 @@
                             <input type="checkbox" value="IPASGO">
                             <span>IPASGO</span>
                         </label>
-                        <label class="tag-checkbox blue-theme">
-                            <input type="checkbox" value="CASSI">
-                            <span>CASSI</span>
-                        </label>
                     </div>
                 </section>
 
                 <!-- BOTÕES -->
                 <div class="form-actions">
                     <button type="button" class="btn-cancel">Cancelar</button>
-                    <button type="submit" class="btn-save">Salvar Alterações</button>
+                    <button type="submit" class="btn-save">Salvar Perfil da Clínica</button>
                 </div>
 
             </form>
@@ -326,6 +342,6 @@
     </footer>
 
     <!-- JS EXTERNO -->
-    <script src="doutorEditar.js"></script>
+    <script src="clinicaEditar.js"></script>
 </body>
 </html>
