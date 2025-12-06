@@ -29,101 +29,7 @@ body {
   overflow: hidden;
 }
 
-/* HEADER GLOBAL */
-/* HEADER GLOBAL (Cópia Exata da Tela de Cadastro) */
-.header {
-  background-color: #ffffff;
-  height: 90px;
-  display: flex;
-  border-radius: 10px;
-  /* Adicionado: Borda arredondada igual ao login */
-  border-bottom: 1px solid #00171f31;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  /* Sombra ajustada */
-  justify-content: space-between;
-  padding: 0 50px;
 
-  /* OBS: Removi 'position: sticky' para ficar IDÊNTICO ao login. 
-       Se precisar que o menu acompanhe a rolagem, adicione 'position: sticky; top: 0; z-index: 1000;' de volta. */
-}
-
-.logo img {
-  height: 80px;
-  width: auto;
-  /* padding: 15px 0; (Opcional, se a logo estiver colada demais) */
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-
-.nav a {
-  justify-content: center;
-  width: 140px;
-  height: 90px;
-  display: flex;
-  align-items: center;
-  font-weight: 600;
-  transition: background-color 0.3s, color 0.3s;
-  text-decoration: none;
-  color: var(--text-main);
-  /* Garante a cor base */
-}
-
-/* Estilos Específicos dos Botões (Cores e Hover) */
-.nav-button1 {
-  background-color: transparent;
-  text-align: center;
-  border-bottom: 4px solid var(--azul-principal);
-}
-
-.nav-button1:hover {
-  background-color: var(--azul-principal);
-  color: var(--branco);
-}
-
-.nav-button2 {
-  background-color: transparent;
-  text-align: center;
-  border-bottom: 4px solid var(--azul-escuro);
-}
-
-.nav-button2:hover {
-  background-color: var(--azul-escuro);
-  color: var(--branco);
-}
-
-.nav-button3 {
-  background-color: transparent;
-  text-align: center;
-  border-bottom: 4px solid var(--turques);
-}
-
-.nav-button3:hover {
-  background-color: var(--turques);
-  color: var(--branco);
-}
-
-.nav-button4 {
-  background-color: transparent;
-  text-align: center;
-  border-bottom: 4px solid var(--preto);
-}
-
-.nav-button4:hover {
-  background-color: var(--preto);
-  color: var(--branco);
-}
-
-/* CORREÇÃO CRÍTICA DE CENTRALIZAÇÃO */
-.header-spacer {
-  width: 200px;
-  /* Aumentado de 150px para 200px para equilibrar com a logo */
-  flex-shrink: 0;
-}
 
 /* LAYOUT PRINCIPAL GLOBAL */
 .content-body {
@@ -395,7 +301,7 @@ body {
 
 /* AQUI ESTÁ O LIMITE QUE VOCÊ PEDIU (600px) */
 .accordion-wrapper.open {
-  max-height: 600px;
+  max-height: 350px;
   /* Se passar de 600px, cria scroll */
   overflow-y: auto;
   border-top: none;
@@ -420,6 +326,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  overflow: none;
 }
 
 .form-row {

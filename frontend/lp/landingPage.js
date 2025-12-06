@@ -28,92 +28,72 @@
     }
   });
 
-  // --- Dropdown do perfil ---
-  function initProfileDropdown() {
-    const profilePic = document.querySelector('.profile-pic');
-    if (profilePic) {
-      profilePic.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const dropdown = profilePic.querySelector('.dropdown-menu');
-        if (!dropdown) return;
-        dropdown.classList.toggle('show');
-      });
-    } else {
-      console.warn('Elemento .profile-pic não encontrado no DOM.');
-    }
-  }
-
-  initProfileDropdown();
-
-  // Fechar dropdown ao clicar fora
+  // --- Lógica Unificada de Login/Dropdown (Mais Robusta) ---
   document.addEventListener('click', (e) => {
-    // se não achou, silently ignore
-    const p = document.querySelector('.profile-pic');
-    if (!p) return;
-    if (!p.contains(e.target)) {
-      const dropdown = p.querySelector('.dropdown-menu');
-      dropdown?.classList.remove('show');
-    }
-  });
+    const target = e.target;
 
-  // Fechar com ESC
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      const p = document.querySelector('.profile-pic');
-      if (!p) return;
-      const dropdown = p.querySelector('.dropdown-menu');
-      dropdown?.classList.remove('show');
-    }
-  });
-
-  // Funcionalidade do botão "Sair" usando event delegation
-  document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('dropdown-item') && e.target.textContent.trim() === 'Sair') {
+    // 1. CLIQUE NO BOTÃO DE LOGIN -> Vira Foto
+    if (target.classList.contains('btn-login')) {
       e.preventDefault();
-      const profilePic = document.querySelector('.profile-pic');
-      if (profilePic) {
-        const loginBtn = document.createElement('button');
-        loginBtn.textContent = 'Login';
-        loginBtn.className = 'btn-login';
-        profilePic.parentNode.replaceChild(loginBtn, profilePic);
-      }
-    }
-  });
+      const loginBtn = target;
 
-  // Funcionalidade do botão "Login" - regenera o profile pic
-  document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('btn-login')) {
-      e.preventDefault();
-      const loginBtn = e.target;
+      // Cria o elemento da foto (Wrapper)
       const profilePic = document.createElement('div');
       profilePic.className = 'profile-pic';
+
+      // --- AQUI ESTAVA A DIFERENÇA ---
+      // Agora está igual ao global: tenta a imagem local, se falhar, usa o ícone do CDN.
       profilePic.innerHTML = `
-        <img src="img/do-utilizador.png" alt="Perfil do Usuário">
+        <img src="img/do-utilizador.png" alt="Perfil" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
         <div class="dropdown-menu">
           <a href="#" class="dropdown-item">Meu Perfil</a>
           <div class="dropdown-divider"></div>
           <a href="#" class="dropdown-item">Sair</a>
         </div>
       `;
+      // -------------------------------
+
+      // Substitui botão pela foto
       loginBtn.parentNode.replaceChild(profilePic, loginBtn);
-      initProfileDropdown(); // Reinitialize the dropdown functionality
+      return; // Para a execução aqui
+    }
 
-      // Attach event listener to the newly created "Sair" link
-      const sairLink = profilePic.querySelector('.dropdown-menu .dropdown-item:last-child');
-      if (sairLink) {
-        sairLink.addEventListener('click', (e) => {
-          e.preventDefault();
-          const profilePic = document.querySelector('.profile-pic');
-          if (profilePic) {
-            const loginBtn = document.createElement('button');
-            loginBtn.textContent = 'Login';
-            loginBtn.className = 'btn-login';
-            profilePic.parentNode.replaceChild(loginBtn, profilePic);
-          }
-        });
+    // 2. CLIQUE NA FOTO -> Abre/Fecha Menu
+    const profileWrapper = target.closest('.profile-pic');
+    if (profileWrapper) {
+      // Se clicou na foto (e não no menu dentro dela)
+      const menu = profileWrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.classList.toggle('show');
+        e.stopPropagation(); // Impede que o clique feche o menu imediatamente
       }
+      return;
+    }
 
-      // TODO: Link to login page here - replace with actual login logic
+    // 3. CLIQUE NO BOTÃO "SAIR" -> Vira Botão Login
+    if (target.classList.contains('dropdown-item') && target.textContent.trim() === 'Sair') {
+      e.preventDefault();
+      // Acha o wrapper da foto para substituir
+      const profilePic = target.closest('.profile-pic');
+      if (profilePic) {
+        const loginBtn = document.createElement('button');
+        loginBtn.textContent = 'Login';
+        loginBtn.className = 'btn-login';
+        profilePic.parentNode.replaceChild(loginBtn, profilePic);
+      }
+      return;
+    }
+
+    // 4. CLIQUE FORA -> Fecha qualquer menu aberto
+    document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+      menu.classList.remove('show');
+    });
+  });
+
+  // Fechar com tecla ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
     }
   });
 

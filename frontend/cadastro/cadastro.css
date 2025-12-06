@@ -337,8 +337,6 @@ a {
     border-radius: 4px;
     /* Opcional: checkboxes geralmente são quadrados ou levemente arredondados */
     flex-shrink: 0;
-    /* Impede que o flexbox do pai deforme o checkbox */
-    background-color: white;
     /* Garante fundo branco se o global for cinza */
     appearance: none;
     /* Remove estilo nativo (opcional, se quiser customizar totalmente) */

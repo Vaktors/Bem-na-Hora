@@ -34,77 +34,6 @@ a {
     color: inherit;
 }
 
-/* --- HEADER (Atualizado com Hovers e Responsividade) --- */
-.header {
-    background-color: #ffffff;
-    height: 90px;
-    border-bottom: 1px solid #00171f31;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 50px;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.logo img {
-    height: 100px;
-    width: auto;
-    padding: 15px 0;
-}
-
-.nav {
-    display: flex;
-    height: 100%;
-    align-items: center;
-}
-
-.nav a {
-    width: 140px;
-    height: 90px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    color: var(--preto);
-    transition: 0.3s;
-}
-
-/* Hovers do Header */
-.nav-button1 {
-    border-bottom: 4px solid var(--azul-principal);
-    color: var(--preto);
-}
-
-.nav-button1:hover {
-    background-color: var(--azul-principal);
-    color: var(--branco);
-}
-
-.nav-button2 {
-    border-bottom: 4px solid var(--azul-escuro);
-    color: var(--preto);
-}
-
-.nav-button2:hover {
-    background-color: var(--azul-escuro);
-    color: var(--branco);
-}
-
-.nav-button3 {
-    border-bottom: 4px solid var(--turques);
-    color: var(--preto);
-}
-
-.nav-button3:hover {
-    background-color: var(--turques);
-    color: var(--branco);
-}
-
-.header-spacer {
-    width: 150px;
-}
 
 /* --- BACKGROUND DECORATIVO --- */
 .profile-background {
@@ -112,7 +41,7 @@ a {
     top: 90px;
     left: 0;
     width: 100%;
-    height: 650px;
+    height: 600px;
     /* AJUSTADO: Aumentado de 580px para 650px (valor médio) */
     background-color: var(--bg-suave);
     z-index: -1;
@@ -155,7 +84,7 @@ a {
     border-radius: 40px;
     padding: 50px;
     box-shadow: 0 20px 40px rgba(0, 52, 89, 0.08);
-    margin-bottom: 100px;
+    margin-bottom: 10px;
 }
 
 .profile-content-wrapper {
@@ -846,7 +775,7 @@ a {
     /* AQUI: Aumentando altura do fundo para cobrir o card maior */
     .profile-background {
         top: 60px;
-        height: 580px;
+        height: 500px;
         /* AJUSTADO: Aumentado de 550px para 580px */
     }
 

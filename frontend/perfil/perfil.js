@@ -414,3 +414,73 @@ function showToast(title, message, type = 'success') {
         setTimeout(() => toast.remove(), 400);
     }, 4000);
 }
+
+/* --- JS DO HEADER (Compatível com estrutura original) --- */
+function iniciarHeader() {
+  // Captura o header para delegação de eventos
+  const header = document.querySelector('.header');
+
+  if (header) {
+    header.addEventListener('click', (e) => {
+      
+      // 1. Clicou no botão LOGIN -> Vira FOTO
+      if (e.target.classList.contains('btn-login')) {
+        e.preventDefault();
+        const btn = e.target;
+        
+        // Cria o elemento da foto (wrapper)
+        const profilePic = document.createElement('div');
+        profilePic.className = 'profile-pic';
+        profilePic.innerHTML = `
+          <img src="img/do-utilizador.png" alt="Perfil" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item">Meu Perfil</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item">Sair</a>
+          </div>
+        `;
+        
+        // Substitui o botão pela foto dentro do header
+        btn.parentNode.replaceChild(profilePic, btn);
+      }
+      
+      // 2. Clicou na FOTO -> Abre Dropdown
+      else if (e.target.closest('.profile-pic')) {
+        const pic = e.target.closest('.profile-pic');
+        const menu = pic.querySelector('.dropdown-menu');
+        if (menu) {
+          // Fecha outros se tiver
+          document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+            if (m !== menu) m.classList.remove('show');
+          });
+          menu.classList.toggle('show');
+          e.stopPropagation(); 
+        }
+      }
+
+      // 3. Clicou em SAIR -> Volta a ser BOTÃO
+      else if (e.target.classList.contains('dropdown-item') && e.target.textContent.trim() === 'Sair') {
+        e.preventDefault();
+        const pic = e.target.closest('.profile-pic');
+        if (pic) {
+          const btn = document.createElement('button');
+          btn.className = 'btn-login';
+          btn.textContent = 'Login';
+          pic.parentNode.replaceChild(btn, pic);
+        }
+      }
+    });
+  }
+
+  // Fecha dropdown ao clicar fora
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.profile-pic')) {
+      document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+        menu.classList.remove('show');
+      });
+    }
+  });
+}
+
+// Inicializa
+document.addEventListener('DOMContentLoaded', iniciarHeader);

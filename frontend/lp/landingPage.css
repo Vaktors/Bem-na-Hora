@@ -1,50 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 /* =========================================================
    🎨 VARIÁVEIS (HSL para transparência)
    ========================================================= */
 :root {
-  /* SUAS CORES (Formato numérico para permitir transparência HSL) */
+  /* Cores Ajustadas para bater com #00171F do Global */
   --azul-principal: 195 100% 44%;
-  /* #00A7E1 */
-  --preto: 197 100% 10%;
-  /* #00171F */
+  --preto: 195 100% 6%; /* MUDANÇA: De 10% para 6% (Igual ao Global #00171F) */
   --turques: 205 100% 17%;
-  /* #003459 */
   --azul-escuro: 195 100% 33%;
-  /* #007EA7 */
   --branco: 0 0% 100%;
-  /* #FFFFFF */
-
-  /* Aliases para compatibilidade */
+  
+  /* Aliases e Layout */
   --text-main: var(--preto);
-  /* Para sua barra de pesquisa funcionar */
-
-  /* Variáveis de layout e novos tons */
   --fundo-pagina: 205 43% 89%;
   --texto-suave: 205 30% 40%;
   --borda-suave: 195 30% 80%;
   --input-fundo: 195 30% 90%;
 
-  /* Gradientes usando HSL para consistência */
+  /* Gradientes e Sombras */
   --gradiente-hero: linear-gradient(135deg, hsl(195, 100%, 44%) 0%, hsl(195, 100%, 33%) 40%, hsl(205, 100%, 17%) 100%);
   --gradiente-dark: linear-gradient(135deg, hsl(197, 100%, 10%) 0%, hsl(205, 100%, 17%) 50%, hsl(195, 100%, 33%) 100%);
-
-  /* Sombras */
   --sombra-suave: 0 4px 20px hsla(195, 100%, 44%, 0.15);
   --sombra-hover: 0 8px 30px hsla(195, 100%, 44%, 0.25);
 }
 
 @keyframes shake {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(-5deg); }
-  50% { transform: rotate(5deg); }
-  75% { transform: rotate(-5deg); }
-  100% { transform: rotate(0deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-5deg);
+  }
+
+  50% {
+    transform: rotate(5deg);
+  }
+
+  75% {
+    transform: rotate(-5deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 /* =========================================================
    ⚙️ BASE
    ========================================================= */
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -57,8 +64,9 @@ body {
   margin: 0;
   color: hsl(var(--preto));
   background: hsl(var(--fundo-pagina));
-  font: 16px/1.5 system-ui, -apple-system, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  
+  /* MUDANÇA: Removido antialiased e tamanhos fixos para ficar IGUAL ao Global */
+  font-family: 'Poppins', sans-serif;
 }
 
 img,
@@ -127,42 +135,47 @@ a {
 
 
 /* =========================================================
-   🧭 SEU HEADER PADRÃO (Adaptado para HSL)
+   🧭 HEADER (Sincronizado Pixel-por-Pixel com Global)
    ========================================================= */
 .header {
   background-color: hsl(var(--branco));
-  /* #ffffff */
   height: 90px;
-  border-bottom: 1px solid hsla(197, 100%, 10%, 0.31);
-  /* #00171f31 adaptado */
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  
   padding: 0 50px;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
+  
+  border-bottom: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.header-right {
-  width: 88px;
-  display: flex;
-  justify-content: flex-end;
-}
+/* MUDANÇA: A classe .logo (container) foi REMOVIDA daqui pois não existe no Global.
+   Isso fará a imagem alinhar exatamente igual nas duas páginas. */
 
 .logo img {
-  height: 100px;
+  height: 80px;
   width: auto;
-  padding: 15px 0;
+  transition: height 0.3s;
 }
 
 .logo img:hover {
   animation: shake 0.5s;
 }
 
+/* Nav centralizada via Position Absolute (Para não empurrar com o login) */
 .nav {
+  /* Centralização Absoluta: Ignora o tamanho da logo ou do login */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  
   display: flex;
   height: 100%;
   align-items: center;
@@ -171,19 +184,20 @@ a {
 
 .nav a {
   width: 140px;
-  height: 79.800px;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  
+  /* Ajuste Fino: Peso da fonte idêntico ao Global */
+  font-weight: 600; 
   color: hsl(var(--preto));
   transition: 0.3s;
 }
 
-/* Botão 1 - Azul Principal */
+/* Cores dos botões (Mantidos) */
 .nav-button1 {
   border-bottom: 4px solid hsl(var(--azul-principal));
-  color: hsl(var(--preto));
 }
 
 .nav-button1:hover {
@@ -191,10 +205,8 @@ a {
   color: hsl(var(--branco));
 }
 
-/* Botão 2 - Azul Escuro */
 .nav-button2 {
   border-bottom: 4px solid hsl(var(--azul-escuro));
-  color: hsl(var(--preto));
 }
 
 .nav-button2:hover {
@@ -202,10 +214,8 @@ a {
   color: hsl(var(--branco));
 }
 
-/* Botão 3 - Turquesa */
 .nav-button3 {
   border-bottom: 4px solid hsl(var(--turques));
-  color: hsl(var(--preto));
 }
 
 .nav-button3:hover {
@@ -213,77 +223,7 @@ a {
   color: hsl(var(--branco));
 }
 
-/* ---- DROPDOWN DO PERFIL BONITO ---- */
-
-.profile-pic {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  overflow: visible; /* importante */
-  cursor: pointer;
-  transition: transform .2s ease;
-  background-color: hsl(var(--azul-principal)); /* Fallback background if image doesn't load */
-}
-
-.profile-pic:hover {
-  transform: scale(1.05);
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 50px;
-  right: 0;
-
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 10px 0;
-
-  min-width: 180px;
-
-
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px) scale(.97);
-  transform-origin: top right;
-
-  transition: 
-    opacity .25s ease,
-    transform .25s ease,
-    visibility .25s;
-  z-index: 9999;
-}
-
-.dropdown-menu.show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0) scale(1);
-}
-
-.dropdown-item {
-  padding: 12px 18px;
-  font-size: 15px;
-  color: #00171f;
-  font-weight: 500;
-  transition: background .2s ease, padding-left .2s ease;
-}
-
-.dropdown-item:hover {
-  background: rgba(0, 169, 225, 0.041); /* leve azul */
-  width: 5px;
-  height: 10px;
-  padding-left: 10px;
-  border-radius: 25%;
-}
-
-/* Linha separadora opcional */
-.dropdown-divider {
-  height: 1px;
-  margin: 6px 0;
-  background: rgba(0,0,0,.08);
-}
-
-/* Botão Login */
+/* Botão Login Desktop */
 .btn-login {
   background-color: hsl(var(--azul-principal));
   color: hsl(var(--branco));
@@ -293,11 +233,67 @@ a {
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s;
 }
 
 .btn-login:hover {
   background-color: hsl(var(--turques));
+}
+
+/* --- RESPONSIVIDADE NOTEBOOK (Igual Vitrine: 1440px) --- */
+@media screen and (max-width: 1440px) {
+  .header {
+    height: 60px;
+    /* Reduz altura */
+    padding: 0 25px;
+  }
+
+  .logo img {
+    height: 50px;
+    /* Reduz logo */
+  }
+
+  /* Ajusta Nav para caber na altura reduzida */
+  .nav a {
+    width: 110px;
+    /* Reduz largura dos links */
+    font-size: 0.85rem;
+    /* Reduz fonte */
+  }
+
+  /* Ajusta botão de login para notebook */
+  .btn-login {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  /* Ajusta foto de perfil se estiver logado */
+  .profile-pic {
+    width: 40px;
+    height: 40px;
+  }
+
+  .dropdown-menu {
+    top: 50px;
+    /* Ajusta posição do menu */
+  }
+}
+
+/* --- RESPONSIVIDADE MOBILE / TABLET (< 900px) --- */
+@media (max-width: 900px) {
+  .header {
+    padding: 0 20px;
+  }
+
+  /* Esconde navegação no mobile */
+  .nav {
+    display: none;
+  }
+
+  /* Mantém logo e login visíveis e nos extremos */
+  .header {
+    justify-content: space-between;
+  }
 }
 
 
@@ -307,8 +303,8 @@ a {
 
 /* Ajuste do fundo */
 .bg-gradient-hero {
-  background-image: 
-    linear-gradient(90deg, rgba(0,23,31,0.7) 0%, rgba(0,23,31,0.4) 25%, rgba(0,0,0,0) 60%), 
+  background-image:
+    linear-gradient(90deg, rgba(0, 23, 31, 0.7) 0%, rgba(0, 23, 31, 0.4) 25%, rgba(0, 0, 0, 0) 60%),
     var(--gradiente-hero);
   background-repeat: no-repeat;
   background-size: cover;
@@ -321,11 +317,13 @@ a {
   position: relative;
   overflow: hidden;
   /* Altura mínima para ficar bonito, mas sem exagerar */
-  min-height: 80vh; 
+  min-height: 80vh;
   display: flex;
-  align-items: center; /* Centraliza verticalmente (topo-baixo) */
-  justify-content: flex-start; /* Alinha horizontalmente no início (esquerda) */
-  
+  align-items: center;
+  /* Centraliza verticalmente (topo-baixo) */
+  justify-content: flex-start;
+  /* Alinha horizontalmente no início (esquerda) */
+
   /* IMPORTANTE: Removemos margens negativas e padding extra */
   margin-left: 0;
   padding: 0;
@@ -334,9 +332,9 @@ a {
 
 /* O bloco que segura o conteúdo */
 .hero-grid {
-    width: 100%;
-    display: block;
-    /* Não precisa de margin aqui, o .container do HTML já cuida das bordas */
+  width: 100%;
+  display: block;
+  /* Não precisa de margin aqui, o .container do HTML já cuida das bordas */
 }
 
 /* Coluna da Esquerda (agora ocupa tudo) */
@@ -344,20 +342,21 @@ a {
   display: flex;
   flex-direction: column;
   /* ALINHAMENTO À ESQUERDA */
-  align-items: flex-start; 
+  align-items: flex-start;
   justify-content: center;
   width: 100%;
-  
+
   /* Removemos posicionamentos relativos estranhos */
   left: 0;
   padding-left: 0;
 }
 
 .hero-content {
-  text-align: left; /* Garante texto à esquerda */
+  text-align: left;
+  /* Garante texto à esquerda */
   width: 100%;
   /* Define um limite para o texto não ficar muito comprido e difícil de ler */
-  max-width: 900px; 
+  max-width: 900px;
 }
 
 .hero-title {
@@ -370,33 +369,35 @@ a {
 }
 
 .hero-title-strong {
-  display: inline-block; /* Ou block, dependendo se quer na mesma linha ou não */
+  display: inline-block;
+  /* Ou block, dependendo se quer na mesma linha ou não */
   color: hsl(var(--branco));
 }
 
 .hero-subtitle {
   font-size: 20px;
   opacity: .95;
-  margin: 0 0 40px 0; /* Margem apenas embaixo */
+  margin: 0 0 40px 0;
+  /* Margem apenas embaixo */
   max-width: 700px;
 }
 
 /* Barra de Pesquisa */
 .main-search-bar {
-    margin-bottom: 40px; 
-    position: relative;
-    width: 100%;
-    /* Se quiser ela bem larga, use 100% ou aumente o max-width */
-    max-width: 900px; 
-    /* Removemos margin-left auto para ela ficar na esquerda */
-    margin-left: 0; 
+  margin-bottom: 40px;
+  position: relative;
+  width: 100%;
+  /* Se quiser ela bem larga, use 100% ou aumente o max-width */
+  max-width: 900px;
+  /* Removemos margin-left auto para ela ficar na esquerda */
+  margin-left: 0;
 }
 
 /* Estatísticas */
 .stats {
   display: flex;
   /* Alinha à esquerda */
-  justify-content: flex-start; 
+  justify-content: flex-start;
   text-align: left;
   gap: 60px;
   width: 100%;
@@ -411,22 +412,23 @@ a {
 
 /* Responsivo Mobile */
 @media (max-width: 768px) {
-    .hero {
-        /* No mobile, um pouco de padding vertical ajuda */
-        padding: 60px 0;
-        height: auto;
-        min-height: auto;
-    }
-    
-    .stats {
-        gap: 30px;
-        flex-wrap: wrap;
-    }
-    
-    /* Opcional: No celular talvez você queira centralizado, se não, remova isso */
-    /* .hero-left { align-items: center; } */
-    /* .hero-content { text-align: center; } */
+  .hero {
+    /* No mobile, um pouco de padding vertical ajuda */
+    padding: 60px 0;
+    height: auto;
+    min-height: auto;
+  }
+
+  .stats {
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+
+  /* Opcional: No celular talvez você queira centralizado, se não, remova isso */
+  /* .hero-left { align-items: center; } */
+  /* .hero-content { text-align: center; } */
 }
+
 /* =========================================================
    🔍 SUA BARRA DE PESQUISA PADRÃO (Adaptada HSL)
    ========================================================= */
@@ -801,51 +803,131 @@ a {
   color: hsl(var(--turques));
 }
 
-
 /* =========================================================
-   ⚓ RODAPÉ
+   👤 DROPDOWN E PERFIL (Estava faltando)
    ========================================================= */
-.site-footer {
-  background: hsl(var(--preto));
-  color: hsla(0, 0%, 100%, 0.85);
-  padding: 56px 0 28px;
+
+.profile-pic {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  cursor: pointer;
+  background-color: hsl(var(--azul-principal));
+  /* Centraliza a imagem ou iniciais */
+  display: flex; 
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  /* Garante que o menu flutuante não seja cortado */
+  overflow: visible; 
 }
 
+.profile-pic img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
 
-.footer-logo {
-  height: 120px;
-  margin-bottom: 8px;
-  }
+.profile-pic:hover {
+  transform: scale(1.05);
+}
 
-.footer-logo:hover {
-  animation: shake 0.5s;
+.dropdown-menu {
+  position: absolute;
+  top: 60px; /* Distância do topo */
+  right: 0;
+  background: hsl(var(--branco));
+  border-radius: 12px;
+  padding: 8px 0;
+  min-width: 200px;
+  box-shadow: 0 10px 40px hsla(var(--preto) / 0.1);
+  
+  /* Estado inicial: escondido */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transform-origin: top right;
+  transition: all 0.2s ease-in-out;
+  z-index: 9999;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Itens do Menu */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 15px;
+  color: hsl(var(--preto));
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: hsla(195, 100%, 44%, 0.08); /* Azul claro */
+  color: hsl(var(--azul-principal));
+}
+
+.dropdown-divider {
+  display: none; /* Ocultando conforme seu pedido anterior */
+}
+
+/* Botão Sair (Vermelho) */
+.dropdown-item:last-child {
+  color: #ef233c; 
+  margin-top: 4px;
+}
+
+.dropdown-item:last-child:hover {
+  background-color: rgba(239, 35, 60, 0.08);
+  color: #d90429;
+}
+
+/* =========================================================
+   ⚓ RODAPÉ (Corrigido: Cor Escura e Responsivo)
+   ========================================================= */
+.site-footer {
+  /* Cor exata da Vitrine (#00171F) */
+  background-color: #00171F;
+  color: rgba(255, 255, 255, 0.85);
+  padding: 56px 0 28px;
+  margin-top: auto;
+}
+
+.site-footer .container {
+  max-width: 1100px;
+  /* Alinhado com as outras páginas */
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 .footer-grid {
-  display: flex;
-  flex-direction: row;
+  display: grid;
   gap: 24px;
-  justify-content: space-between;
+  /* Padrão Desktop: 4 colunas */
+  grid-template-columns: repeat(4, 1fr);
   align-items: flex-start;
-  text-align: center;
+  text-align: left;
 }
 
-@media (max-width: 767px) {
-  .footer-grid {
-    flex-direction: column;
-    gap: 24px;
-  }
-}
-
-.brand-footer {
-  color: hsl(var(--branco));
-  margin: 0 0 10px;
-}
-
+/* Títulos e Links (Garantindo cor branca sobre fundo escuro) */
 .footer-title {
-  color: hsl(var(--branco));
-  margin: 0 0 10px;
+  color: #FFFFFF;
+  margin: 0 0 15px;
   font-weight: 700;
+  font-size: 1.1rem;
 }
 
 .footer-list {
@@ -856,16 +938,28 @@ a {
   gap: 8px;
 }
 
-.footer-link {
-  color: hsla(0, 0%, 100%, 0.85);
+.footer-link,
+.footer-contact {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  transition: color 0.3s;
+  font-size: 0.95rem;
 }
 
 .footer-link:hover {
   color: hsl(var(--azul-principal));
+  /* Azul no hover */
 }
 
+/* Logo do Footer */
+.footer-logo {
+  height: 100px;
+  width: auto;
+  margin-bottom: 15px;
+  /* Mantém comportamento padrão */
+}
 
-
+/* Redes Sociais (Mantendo seu estilo original) */
 .socials {
   display: flex;
   gap: 20px;
@@ -875,29 +969,76 @@ a {
 }
 
 .social-link {
-  color: hsla(0, 0%, 100%, 0.85);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 24px;
   transition: color 0.3s;
 }
+
+/* Cores específicas dos ícones (Do seu código original) */
 #insta:hover {
-  color: rgb(253, 12, 153)
+  color: rgb(253, 12, 153);
 }
 
 #face:hover {
-  color: rgb(0, 66, 248)
-  }
+  color: rgb(0, 66, 248);
+}
 
 #twi:hover {
   color: hsl(var(--azul-principal));
-
 }
+
 .footer-copy {
-  border-top: 1px solid hsla(0, 0%, 100%, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   margin-top: 28px;
   padding-top: 20px;
   text-align: center;
-  color: hsla(0, 0%, 100%, 0.75);
+  color: rgba(255, 255, 255, 0.75);
   font-size: 14px;
+}
+
+/* --- RESPONSIVIDADE NOTEBOOK (Max 1440px) --- */
+@media screen and (max-width: 1440px) {
+  .site-footer {
+    padding: 40px 0 20px;
+  }
+
+  .footer-logo {
+    height: 80px;
+    /* Logo um pouco menor */
+  }
+
+  .footer-title {
+    font-size: 1rem;
+  }
+
+  .footer-link,
+  .footer-contact {
+    font-size: 0.9rem;
+  }
+}
+
+/* --- RESPONSIVIDADE TABLET E MOBILE (Max 900px) --- */
+@media (max-width: 900px) {
+  .footer-grid {
+    /* Vira uma coluna só */
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 30px;
+  }
+
+  .footer-logo {
+    margin: 0 auto 15px auto;
+    /* Centraliza logo */
+  }
+
+  .socials {
+    justify-content: center;
+    /* Centraliza ícones */
+  }
+
+  .site-footer .container {
+    padding: 0 30px;
+  }
 }
 
 /* Responsivo Mobile */
