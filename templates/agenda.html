@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda - Bem Na Hora</title>
+
+    <link href="https://fonts.googleapis.com/css2?..." rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/..." >
+
+    <link rel="icon" href="{{ url_for('static', filename='img/relogio.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='agenda/agenda.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='img/logo.png') }}">
+        </div>
+        <nav class="nav">
+            <a href="#" class="nav-button1">Saiba mais</a>
+            <a href="#" class="nav-button2">Consultas</a>
+            <a href="#" class="nav-button3">Torne-se<br>Parceiro</a>
+        </nav>
+        <button class="btn-login">Login</button>
+    </header>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <div class="agenda-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="agenda-sidebar">
+
+            <div class="sidebar-header">
+                <button class="btn-add-consulta">
+                    <i class="fa-solid fa-plus"></i> Novo Agendamento
+                </button>
+            </div>
+
+            <!-- Mini Calendário -->
+            <div class="mini-calendar-wrapper">
+                <div class="calendar-nav">
+                    <div class="nav-arrows">
+                        <i class="fa-solid fa-chevron-left" id="mini-prev"></i>
+                    </div>
+                    <span class="current-month">Dezembro 2025</span>
+                    <div class="nav-arrows">
+                        <i class="fa-solid fa-chevron-right" id="mini-next"></i>
+                    </div>
+                </div>
+                <div class="mini-calendar-grid">
+                    <!-- Gerado via JS -->
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Filtros -->
+            <div class="filter-section">
+                <h4><i class="fa-solid fa-user-doctor"></i> Profissionais</h4>
+                <div class="filter-options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" checked id="filter-all">
+                        <span class="checkmark"></span>
+                        Todos
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" checked value="Dr. Carlos" class="doc-filter">
+                        <span class="checkmark color-1"></span>
+                        Dr. Carlos (Cardio)
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" checked value="Dra. Ana" class="doc-filter">
+                        <span class="checkmark color-2"></span>
+                        Dra. Ana (Dermato)
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" checked value="Dr. Roberto" class="doc-filter">
+                        <span class="checkmark color-3"></span>
+                        Dr. Roberto (Orto)
+                    </label>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ÁREA PRINCIPAL -->
+        <main class="agenda-main">
+
+            <div class="agenda-topbar">
+                <div class="date-controls">
+                    <button class="icon-btn" id="btn-prev-day"><i class="fa-solid fa-chevron-left"></i></button>
+                    <h2 id="display-data">Carregando...</h2>
+                    <button class="icon-btn" id="btn-next-day"><i class="fa-solid fa-chevron-right"></i></button>
+                    <button class="today-badge" id="btn-today">Hoje</button>
+                </div>
+
+                <div class="view-mode">
+                    <button class="mode-btn active" id="mode-dia">Dia</button>
+                    <button class="mode-btn" id="mode-semana">Semana</button>
+                </div>
+            </div>
+
+            <div class="timeline-container">
+                <div class="timeline-header">
+                    <div class="time-column">Horário</div>
+                    <div class="events-column" id="header-events">Agenda</div>
+                </div>
+
+                <div class="timeline-body" id="timeline-body">
+                    <!-- Gerado via JS -->
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='agenda/agenda.js') }}"></script>
+</body>
+
+</html>

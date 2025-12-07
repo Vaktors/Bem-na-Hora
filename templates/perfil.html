@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Usuário</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/relogio.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='perfil/perfil.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
+</head>
+
+<body>
+
+  <header class="header">
+    <div class="logo">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Bem Na Hora">
+    </div>
+    <nav class="nav">
+      <a href="#" class="nav-button1">Saiba mais</a>
+      <a href="#" class="nav-button2">Consultas</a>
+      <a href="#" class="nav-button3">Torne-se<br>Parceiro</a>
+    </nav>
+    <button class="btn-login">Login</button>
+  </header>
+
+  <div class="content-body">
+
+    <aside class="sidebar-card">
+
+      <div class="profile-header">
+        <div class="avatar-wrapper">
+          <img id="ftPerfil" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar do Usuário">
+          <label for="upload-photo" class="edit-icon-img"><i class="fas fa-camera"></i></label>
+          <input type="file" id="upload-photo" accept="image/*">
+        </div>
+        <h2>Burk Macklin</h2>
+        <span class="badge">Plano Amil - Ativo</span>
+      </div>
+
+      <hr class="divider">
+
+      <div class="sidebar-info-section" id="personal-data-section">
+        <div class="section-title-row">
+          <h3>Dados Pessoais</h3>
+          <div class="action-buttons">
+            <button class="btn-edit-sidebar" onclick="toggleEdit('personal-data-section', this)">
+              <i class="fas fa-pen"></i> <span class="btn-text" style="display:none">Alterar</span>
+            </button>
+            <button class="btn-cancel-edit hidden" onclick="cancelEdit('personal-data-section')">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>CPF</label>
+          <input type="text" id="input-cpf" class="field-input sidebar-input" value="000.000.000-00" readonly
+            maxlength="14">
+        </div>
+        <div class="input-group">
+          <label>Nascimento</label>
+          <input type="text" id="input-nascimento" class="field-input sidebar-input" value="21/12/2005" readonly
+            maxlength="10">
+        </div>
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email" class="field-input sidebar-input" value="abc@gmail.com" readonly>
+        </div>
+        <div class="input-group">
+          <label>Telefone</label>
+          <input type="tel" id="input-telefone" class="field-input sidebar-input" value="(62) 99999-9999" readonly
+            maxlength="15">
+        </div>
+      </div>
+    </aside>
+
+
+    <main class="main-content">
+
+      <section class="welcome-banner">
+        <div class="banner-main-text">
+          <h1>Bem-vindo, Burk!</h1>
+          <p>Lembre-se de manter seu cadastro atualizado.</p>
+        </div>
+      </section>
+
+      <section class="generic-card address-card" id="address-section">
+        <div class="card-header-flex accordion-header" id="header-address"
+          onclick="toggleAccordion('wrapper-address', 'header-address')">
+          <h2>Endereço</h2>
+
+          <div class="header-controls">
+            <button class="btn-edit-card btn-action" onclick="event.stopPropagation(); toggleEdit('address-section', this)">
+              <i class="fas fa-pen"></i> <span class="btn-text">Alterar</span>
+            </button>
+            <button class="btn-cancel-card btn-action hidden" onclick="event.stopPropagation(); cancelEdit('address-section')">
+              <i class="fas fa-times"></i> <span class="btn-text">Cancelar</span>
+            </button>
+            <span class="arrow">⯆</span>
+          </div>
+        </div>
+
+        <div class="accordion-wrapper" id="wrapper-address">
+          <div class="address-details-form padding-content">
+            
+            <div class="form-row full-width">
+              <label>Rua/Logradouro</label>
+              <input type="text" id="input-rua" class="field-input card-input" value="Rua das Flores, Quadra 4, Lote 12" readonly>
+            </div>
+
+            <div class="form-row full-width">
+              <label>Bairro</label>
+              <input type="text" id="input-bairro" class="field-input card-input" value="Setor Bueno" readonly>
+            </div>
+
+            <div class="form-row three-cols">
+              <div class="col">
+                <label>Cidade</label>
+                <input type="text" id="input-cidade" class="field-input card-input" value="Goiânia" readonly>
+              </div>
+              <div class="col">
+                <label>Estado</label>
+                <input type="text" id="input-uf" class="field-input card-input" value="GO" readonly>
+              </div>
+              <div class="col">
+                <label>CEP</label>
+                <input type="text" id="input-cep" class="field-input card-input" value="74000-000" readonly maxlength="9">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="generic-card projects">
+        <div class="section-header accordion-header" id="header-history"
+          onclick="toggleAccordion('wrapper-history', 'header-history')">
+          <h2>Histórico Médico</h2>
+          <span class="arrow">⯆</span>
+        </div>
+
+        <div class="accordion-wrapper" id="wrapper-history">
+          <div class="projects-content padding-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Médico/Clínica</th>
+                  <th>Exames</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>28/11/2025</td>
+                  <td>Cardiologista - Clínica Tal</td>
+                  <td>Eletrocardiograma</td>
+                  <td><span class="status confirm">Confirmado</span></td>
+                </tr>
+                <tr>
+                  <td>20/10/2025</td>
+                  <td>Oftalmologista</td>
+                  <td>Rotina</td>
+                  <td><span class="status confirm">Concluído</span></td>
+                </tr>
+                <tr>
+                  <td>15/09/2025</td>
+                  <td>Clínico Geral</td>
+                  <td>Check-up</td>
+                  <td><span class="status confirm">Concluído</span></td>
+                </tr>
+                <tr>
+                  <td>10/08/2025</td>
+                  <td>Dermatologista</td>
+                  <td>Consulta</td>
+                  <td><span class="status confirm">Concluído</span></td>
+                </tr>
+                <tr>
+                  <td>05/07/2025</td>
+                  <td>Ortopedista</td>
+                  <td>Raio-X</td>
+                  <td><span class="status confirm">Concluído</span></td>
+                </tr>
+                <tr>
+                  <td>05/07/2025</td>
+                  <td>Ortopedista</td>
+                  <td>Raio-X</td>
+                  <td><span class="status confirm">Concluído</span></td>
+                </tr>
+                <tr>
+                  <td>05/07/2025</td>
+                  <td>Ortopedista</td>
+                  <td>Raio-X</td>
+                  <td><span class="status confirm">Concluído</span></td>
+                </tr>
+                <tr>
+                  <td>05/07/2025</td>
+                  <td>Ortopedista</td>
+                  <td>Raio-X</td>
+                  <td><span class="status confirm">Concluído</span></td>
+                </tr>
+                <tr>
+                  <td>05/07/2025</td>
+                  <td>Ortopedista</td>
+                  <td>Raio-X</td>
+                  <td><span class="status confirm">Concluído</span></td>
+                </tr>
+                <tr>
+                  <td>05/07/2025</td>
+                  <td>Ortopedista</td>
+                  <td>Raio-X</td>
+                  <td><span class="status confirm">Concluído</span></td>
+                </tr>
+                <tr>
+                  <td>05/07/2025</td>
+                  <td>Ortopedista</td>
+                  <td>Raio-X</td>
+                  <td><span class="status confirm">Concluído</span></td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-card confirmation-card">
+      <h3 class="modal-title">Salvar Alterações?</h3>
+      <p class="modal-message">Confirme se deseja atualizar suas informações com os novos dados inseridos.</p>
+
+      <div class="modal-actions">
+        <button class="btn-modal btn-cancel" id="btn-cancel-save">Cancelar</button>
+        <button class="btn-modal btn-confirm" id="btn-confirm-save">Sim, Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="{{ url_for('static', filename='perfil/perfil.js') }}"></script>
+  <script>
+
+    // JS Histórico
+    const trigger = document.getElementById("toggle-history");
+    const wrapper = document.querySelector(".accordion-wrapper");
+    const arrow = document.querySelector(".arrow");
+    trigger.addEventListener("click", () => {
+      if (wrapper.style.maxHeight) {
+        wrapper.style.maxHeight = null;
+        arrow.style.transform = "rotate(0deg)";
+      } else {
+        wrapper.style.maxHeight = wrapper.scrollHeight + "px";
+        arrow.style.transform = "rotate(180deg)";
+      }
+    });
+
+    // JS Imagem
+    const input = document.getElementById("upload-photo");
+    const img = document.getElementById("ftPerfil");
+    input.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function () { img.src = reader.result; };
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+
+</body>
+
+</html>
