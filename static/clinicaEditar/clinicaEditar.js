@@ -38,9 +38,43 @@ document.addEventListener('DOMContentLoaded', () => {
     inputFoto.addEventListener('change', function(evento) {
         const arquivo = evento.target.files[0];
         if (arquivo) {
+            // Validação
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(arquivo.type)) {
+                alert('Tipo de arquivo não permitido. Use: PNG, JPG, JPEG, GIF ou WEBP.');
+                return;
+            }
+            
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (arquivo.size > maxSize) {
+                alert('Arquivo muito grande. Máximo 5MB.');
+                return;
+            }
+            
             const leitor = new FileReader();
             leitor.onload = function(e) {
                 previewContainer.innerHTML = `<img src="${e.target.result}" alt="Logo da Clínica">`;
+                
+                // Enviar foto para o servidor
+                const formData = new FormData();
+                formData.append('foto', arquivo);
+                
+                fetch('/api/clinica/upload-foto', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Foto enviada com sucesso');
+                    } else {
+                        alert('Erro ao enviar foto: ' + (data.message || 'Erro desconhecido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao enviar foto:', error);
+                    alert('Erro ao conectar com o servidor para upload da foto');
+                });
             }
             leitor.readAsDataURL(arquivo);
         }
@@ -270,14 +304,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('form-clinica');
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-        
-        // ATUALIZADO: Coleta imagem + legenda
-        const galeria = Array.from(document.querySelectorAll('.gallery-thumb')).map(thumb => {
-            return {
-                src: thumb.querySelector('img').src,
-                legenda: thumb.querySelector('.gallery-caption-input').value
-            };
-        });
 
         const dadosClinica = {
             nome: document.getElementById('nome-clinica').value,
@@ -290,8 +316,6 @@ document.addEventListener('DOMContentLoaded', () => {
             equipe: obterEquipeDoDOM(),
             servicos: obterServicosDoDOM(),
             historia: document.getElementById('historia').value,
-            // Adicionado campo galeria com legendas
-            galeria: galeria, 
             endereco: document.getElementById('endereco').value,
             bairro: document.getElementById('bairro').value,
             cidade: document.getElementById('cidade').value,
@@ -301,8 +325,34 @@ document.addEventListener('DOMContentLoaded', () => {
             convenios: Array.from(document.querySelectorAll('#convenios-container input:checked')).map(cb => cb.value)
         };
 
-        console.log("DADOS DA CLÍNICA PRONTOS:", dadosClinica);
-        alert("Dados da clínica salvos! (Verifique o console para JSON)");
+        // Enviar para API
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Salvando...';
+
+        fetch('/api/clinica/atualizar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dadosClinica)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Perfil da clínica atualizado com sucesso!');
+            } else {
+                alert('Erro: ' + (data.message || 'Erro ao salvar'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao conectar com o servidor');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Salvar Perfil da Clínica';
+        });
     });
 
     function obterServicosDoDOM() {
@@ -329,5 +379,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         return lista;
     }
+
+    // --- LÓGICA DE DROPDOWN (se já existir foto de perfil) ---
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+
+        // 1. CLIQUE NA FOTO -> Abre/Fecha Menu
+        const profileWrapper = target.closest('.profile-pic');
+        if (profileWrapper) {
+            const menu = profileWrapper.querySelector('.dropdown-menu');
+            if (menu) {
+                menu.classList.toggle('show');
+                e.stopPropagation();
+            }
+            return;
+        }
+
+        // 2. CLIQUE FORA -> Fecha qualquer menu aberto
+        document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+            menu.classList.remove('show');
+        });
+    });
+
+    // Fechar com tecla ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+        }
+    });
 
 });

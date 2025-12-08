@@ -38,11 +38,12 @@ a {
 /* --- BACKGROUND DECORATIVO (Fundo atrás do card) --- */
 .profile-background {
     position: absolute;
-    top: 90px;
+    top: 60px;
     /* Logo abaixo do header */
     left: 0;
     width: 100%;
-    height: 600px;
+    /* ALTERADO: Reduzido drasticamente para 280px para garantir que não vaze no Desktop */
+    height: 280px;
     /* Altura da área colorida */
     background-color: var(--bg-suave);
     /* Azul bem clarinho */
@@ -646,8 +647,7 @@ a {
     /* 2. FUNDO DECORATIVO */
     .profile-background {
         top: 60px;
-        height: 405px;
-        /* Reduzido de 600px */
+        height: 400px; 
     }
 
     /* 3. CONTAINER PRINCIPAL */
@@ -662,7 +662,8 @@ a {
         padding: 35px;
         /* Reduzido de 50px */
         border-radius: 30px;
-        margin-bottom: 50px;
+        margin-bottom: 70px;
+        height: 320px;
     }
 
     .profile-content-wrapper {

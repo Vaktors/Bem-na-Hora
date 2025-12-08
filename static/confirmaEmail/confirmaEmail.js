@@ -54,4 +54,53 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputs.length > 0) {
         inputs[0].focus();
     }
+
+    // --- LÓGICA DE VERIFICAÇÃO DO CÓDIGO ---
+    const verifyButton = document.querySelector('.verify-button');
+    
+    if (verifyButton) {
+        verifyButton.addEventListener('click', () => {
+            // Coletar código dos 6 inputs
+            const codigo = inputs.map(input => input.value).join('');
+            
+            if (codigo.length !== 6) {
+                alert('Por favor, preencha todos os 6 dígitos do código.');
+                return;
+            }
+            
+            verifyButton.disabled = true;
+            verifyButton.textContent = 'Verificando...';
+            
+            fetch('/api/confirmar-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    codigo: codigo
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                verifyButton.disabled = false;
+                verifyButton.textContent = 'Verificar e Ativar';
+                
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = data.redirect;
+                } else {
+                    alert(data.message);
+                    // Limpar campos em caso de erro
+                    inputs.forEach(input => input.value = '');
+                    inputs[0].focus();
+                }
+            })
+            .catch(error => {
+                verifyButton.disabled = false;
+                verifyButton.textContent = 'Verificar e Ativar';
+                console.error('Erro:', error);
+                alert('Erro ao verificar código. Tente novamente.');
+            });
+        });
+    }
 });

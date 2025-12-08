@@ -28,12 +28,9 @@ CREATE TABLE especialidades (
     nome VARCHAR(100) NOT NULL UNIQUE
 );
 
--- ==========================================================
--- 2. USUÁRIO (PACIENTE)
--- ==========================================================
 
 -- ==========================================================
--- 2. USUÁRIO (PACIENTE) - ATUALIZADO
+-- 2. USUÁRIO (PACIENTE)
 -- ==========================================================
 
 CREATE TABLE usuario (
@@ -153,7 +150,7 @@ CREATE TABLE clinica_comodidades (
 );
 
 -- ==========================================================
--- 4. MÓDULO PROFISSIONAL INDEPENDENTE (PF)
+-- 4. MÓDULO PROFISSIONAL INDEPENDENTE 
 -- ==========================================================
 
 CREATE TABLE profissional (
@@ -169,7 +166,8 @@ CREATE TABLE profissional (
 
     -- Perfil Público
     foto_perfil VARCHAR(255),              
-    biografia TEXT,                        
+    biografia TEXT,
+    formacao_academica TEXT,               -- Formação: "Curso - Instituição||Curso2 - Instituição2"
 
     -- Redes Sociais
     site_url VARCHAR(150),
@@ -226,7 +224,7 @@ CREATE TABLE profissional_convenios (
     FOREIGN KEY (idConvenio) REFERENCES convenios(idConvenio)
 );
 -- ==========================================================
--- 5. AGENDAMENTOS (O Coração do Sistema)
+-- 5. AGENDAMENTOS 
 -- ==========================================================
 
 CREATE TABLE agendamento (

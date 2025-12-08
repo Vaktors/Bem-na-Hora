@@ -20,14 +20,30 @@
     <!-- HEADER -->
     <header class="header">
         <div class="logo">
-            <img src="{{ url_for('static', filename='img/logo.png') }}">
+            <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='img/logo.png') }}"></a>
         </div>
         <nav class="nav">
             <a href="#" class="nav-button1">Saiba mais</a>
-            <a href="#" class="nav-button2">Consultas</a>
-            <a href="#" class="nav-button3">Torne-se<br>Parceiro</a>
+            <a href="{{ url_for('vitrine') }}" class="nav-button2">Consultas</a>
+            <a href="{{ url_for('cadastro_parceiro') }}" class="nav-button3">Torne-se<br>Parceiro</a>
         </nav>
-        <button class="btn-login">Login</button>
+        {% if usuario_logado %}
+        <div class="profile-pic">
+            <img src="{% if foto_perfil_usuario %}{{ url_for('static', filename='uploads/' + foto_perfil_usuario) }}{% else %}https://cdn-icons-png.flaticon.com/512/3135/3135715.png{% endif %}" alt="Perfil">
+            <div class="dropdown-menu">
+                {% if tipo_usuario == 'usuario' %}
+                    <a href="{{ url_for('perfil_usuario') }}" class="dropdown-item">Meu Perfil</a>
+                {% elif tipo_usuario == 'profissional' %}
+                    <a href="{{ url_for('doutor_editar') }}" class="dropdown-item">Editar Anúncio</a>
+                {% elif tipo_usuario == 'clinica' %}
+                    <a href="{{ url_for('clinica_editar') }}" class="dropdown-item">Editar Anúncio</a>
+                {% endif %}
+                <button class="dropdown-item" onclick="logout()">Sair</button>
+            </div>
+        </div>
+        {% else %}
+        <a href="{{ url_for('cadastro_usuario') }}" class="btn-login">Login</a>
+        {% endif %}
     </header>
 
     <!-- CONTAINER PRINCIPAL -->
@@ -120,6 +136,7 @@
     </div>
 
     <script src="{{ url_for('static', filename='agenda/agenda.js') }}"></script>
+    <script src="{{ url_for('static', filename='header.js') }}"></script>
 </body>
 
 </html>

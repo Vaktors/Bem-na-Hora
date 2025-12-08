@@ -16,14 +16,31 @@
 
   <header class="header">
     <div class="logo">
-      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Bem Na Hora">
+      <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Bem Na Hora"></a>
     </div>
     <nav class="nav">
       <a href="#" class="nav-button1">Saiba mais</a>
-      <a href="#" class="nav-button2">Consultas</a>
-      <a href="#" class="nav-button3">Torne-se<br>Parceiro</a>
+      <a href="{{ url_for('vitrine') }}" class="nav-button2">Consultas</a>
+      <a href="{{ url_for('cadastro_parceiro') }}" class="nav-button3">Torne-se<br>Parceiro</a>
     </nav>
-    <button class="btn-login">Login</button>
+    {% if usuario_logado %}
+    <div class="profile-pic">
+      <img src="{% if foto_perfil_usuario %}{{ url_for('static', filename='uploads/' + foto_perfil_usuario) }}{% else %}https://cdn-icons-png.flaticon.com/512/3135/3135715.png{% endif %}" alt="Perfil">
+      <div class="dropdown-menu">
+        {% if tipo_usuario == 'usuario' %}
+            <a href="{{ url_for('perfil_usuario') }}" class="dropdown-item">Meu Perfil</a>
+        {% elif tipo_usuario == 'profissional' %}
+            <a href="{{ url_for('doutor_editar') }}" class="dropdown-item">Editar Anúncio</a>
+        {% elif tipo_usuario == 'clinica' %}
+            <a href="{{ url_for('clinica_editar') }}" class="dropdown-item">Editar Anúncio</a>
+        {% endif %}
+        <a href="{{ url_for('agenda') }}" class="dropdown-item">Agenda</a>
+        <button class="dropdown-item" onclick="logout()">Sair</button>
+      </div>
+    </div>
+    {% else %}
+    <a href="{{ url_for('cadastro_usuario') }}" class="btn-login">Login</a>
+    {% endif %}
   </header>
 
   <div class="content-body">
@@ -32,12 +49,12 @@
 
       <div class="profile-header">
         <div class="avatar-wrapper">
-          <img id="ftPerfil" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar do Usuário">
+          <img id="ftPerfil" src="{% if usuario and usuario.foto_perfil %}{{ url_for('static', filename='uploads/' + usuario.foto_perfil) }}{% else %}https://cdn-icons-png.flaticon.com/512/3135/3135715.png{% endif %}" alt="Avatar do Usuário">
           <label for="upload-photo" class="edit-icon-img"><i class="fas fa-camera"></i></label>
           <input type="file" id="upload-photo" accept="image/*">
         </div>
-        <h2>Burk Macklin</h2>
-        <span class="badge">Plano Amil - Ativo</span>
+        <h2>{% if usuario %}{{ usuario.nome }}{% else %}Usuário{% endif %}</h2>
+        <span class="badge">{% if usuario and usuario.convenio_nome %}{{ usuario.convenio_nome }} - Ativo{% else %}Sem convênio{% endif %}</span>
       </div>
 
       <hr class="divider">
@@ -57,21 +74,21 @@
 
         <div class="input-group">
           <label>CPF</label>
-          <input type="text" id="input-cpf" class="field-input sidebar-input" value="000.000.000-00" readonly
+          <input type="text" id="input-cpf" class="field-input sidebar-input" value="{% if usuario and usuario.cpf_formatado %}{{ usuario.cpf_formatado }}{% else %}000.000.000-00{% endif %}" readonly
             maxlength="14">
         </div>
         <div class="input-group">
           <label>Nascimento</label>
-          <input type="text" id="input-nascimento" class="field-input sidebar-input" value="21/12/2005" readonly
+          <input type="text" id="input-nascimento" class="field-input sidebar-input" value="{% if usuario and usuario.dataNasc_formatada %}{{ usuario.dataNasc_formatada }}{% else %}00/00/0000{% endif %}" readonly
             maxlength="10">
         </div>
         <div class="input-group">
           <label>Email</label>
-          <input type="email" class="field-input sidebar-input" value="abc@gmail.com" readonly>
+          <input type="email" class="field-input sidebar-input" value="{% if usuario and usuario.email %}{{ usuario.email }}{% else %}email@exemplo.com{% endif %}" readonly>
         </div>
         <div class="input-group">
           <label>Telefone</label>
-          <input type="tel" id="input-telefone" class="field-input sidebar-input" value="(62) 99999-9999" readonly
+          <input type="tel" id="input-telefone" class="field-input sidebar-input" value="{% if usuario and usuario.telefone_formatado %}{{ usuario.telefone_formatado }}{% elif usuario and usuario.telefone %}{{ usuario.telefone }}{% else %}(00) 00000-0000{% endif %}" readonly
             maxlength="15">
         </div>
       </div>
@@ -82,7 +99,7 @@
 
       <section class="welcome-banner">
         <div class="banner-main-text">
-          <h1>Bem-vindo, Burk!</h1>
+          <h1>Bem-vindo, {% if usuario %}{{ usuario.nome.split(' ')[0] }}{% else %}Usuário{% endif %}!</h1>
           <p>Lembre-se de manter seu cadastro atualizado.</p>
         </div>
       </section>
@@ -108,26 +125,26 @@
             
             <div class="form-row full-width">
               <label>Rua/Logradouro</label>
-              <input type="text" id="input-rua" class="field-input card-input" value="Rua das Flores, Quadra 4, Lote 12" readonly>
+              <input type="text" id="input-rua" class="field-input card-input" value="{% if usuario and usuario.rua %}{{ usuario.rua }}{% else %}{% endif %}" readonly>
             </div>
 
             <div class="form-row full-width">
               <label>Bairro</label>
-              <input type="text" id="input-bairro" class="field-input card-input" value="Setor Bueno" readonly>
+              <input type="text" id="input-bairro" class="field-input card-input" value="{% if usuario and usuario.bairro %}{{ usuario.bairro }}{% else %}{% endif %}" readonly>
             </div>
 
             <div class="form-row three-cols">
               <div class="col">
                 <label>Cidade</label>
-                <input type="text" id="input-cidade" class="field-input card-input" value="Goiânia" readonly>
+                <input type="text" id="input-cidade" class="field-input card-input" value="{% if usuario and usuario.cidade %}{{ usuario.cidade }}{% else %}{% endif %}" readonly>
               </div>
               <div class="col">
                 <label>Estado</label>
-                <input type="text" id="input-uf" class="field-input card-input" value="GO" readonly>
+                <input type="text" id="input-uf" class="field-input card-input" value="{% if usuario and usuario.estado %}{{ usuario.estado }}{% else %}{% endif %}" readonly>
               </div>
               <div class="col">
                 <label>CEP</label>
-                <input type="text" id="input-cep" class="field-input card-input" value="74000-000" readonly maxlength="9">
+                <input type="text" id="input-cep" class="field-input card-input" value="{% if usuario and usuario.cep %}{{ usuario.cep }}{% else %}{% endif %}" readonly maxlength="9">
               </div>
             </div>
           </div>
@@ -141,8 +158,8 @@
         </div>
 
         <div class="accordion-wrapper" id="wrapper-history">
-          <div class="projects-content padding-content">
-            <table>
+          <div class="projects-content padding-content" id="history-content">
+            <table id="history-table" style="display: none;">
               <thead>
                 <tr>
                   <th>Data</th>
@@ -151,76 +168,14 @@
                   <th>Status</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>28/11/2025</td>
-                  <td>Cardiologista - Clínica Tal</td>
-                  <td>Eletrocardiograma</td>
-                  <td><span class="status confirm">Confirmado</span></td>
-                </tr>
-                <tr>
-                  <td>20/10/2025</td>
-                  <td>Oftalmologista</td>
-                  <td>Rotina</td>
-                  <td><span class="status confirm">Concluído</span></td>
-                </tr>
-                <tr>
-                  <td>15/09/2025</td>
-                  <td>Clínico Geral</td>
-                  <td>Check-up</td>
-                  <td><span class="status confirm">Concluído</span></td>
-                </tr>
-                <tr>
-                  <td>10/08/2025</td>
-                  <td>Dermatologista</td>
-                  <td>Consulta</td>
-                  <td><span class="status confirm">Concluído</span></td>
-                </tr>
-                <tr>
-                  <td>05/07/2025</td>
-                  <td>Ortopedista</td>
-                  <td>Raio-X</td>
-                  <td><span class="status confirm">Concluído</span></td>
-                </tr>
-                <tr>
-                  <td>05/07/2025</td>
-                  <td>Ortopedista</td>
-                  <td>Raio-X</td>
-                  <td><span class="status confirm">Concluído</span></td>
-                </tr>
-                <tr>
-                  <td>05/07/2025</td>
-                  <td>Ortopedista</td>
-                  <td>Raio-X</td>
-                  <td><span class="status confirm">Concluído</span></td>
-                </tr>
-                <tr>
-                  <td>05/07/2025</td>
-                  <td>Ortopedista</td>
-                  <td>Raio-X</td>
-                  <td><span class="status confirm">Concluído</span></td>
-                </tr>
-                <tr>
-                  <td>05/07/2025</td>
-                  <td>Ortopedista</td>
-                  <td>Raio-X</td>
-                  <td><span class="status confirm">Concluído</span></td>
-                </tr>
-                <tr>
-                  <td>05/07/2025</td>
-                  <td>Ortopedista</td>
-                  <td>Raio-X</td>
-                  <td><span class="status confirm">Concluído</span></td>
-                </tr>
-                <tr>
-                  <td>05/07/2025</td>
-                  <td>Ortopedista</td>
-                  <td>Raio-X</td>
-                  <td><span class="status confirm">Concluído</span></td>
-                </tr>
-
+              <tbody id="history-tbody">
               </tbody>
             </table>
+            <div id="history-empty" style="display: none; text-align: center; padding: 40px; color: #999;">
+              <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+              <p style="font-size: 1.1rem; font-weight: 600;">Nenhum agendamento encontrado</p>
+              <p style="font-size: 0.9rem; margin-top: 10px;">Você ainda não possui histórico médico registrado.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -242,35 +197,8 @@
   </div>
 
   <div id="toast-container"></div>
+  <script src="{{ url_for('static', filename='header.js') }}"></script>
   <script src="{{ url_for('static', filename='perfil/perfil.js') }}"></script>
-  <script>
-
-    // JS Histórico
-    const trigger = document.getElementById("toggle-history");
-    const wrapper = document.querySelector(".accordion-wrapper");
-    const arrow = document.querySelector(".arrow");
-    trigger.addEventListener("click", () => {
-      if (wrapper.style.maxHeight) {
-        wrapper.style.maxHeight = null;
-        arrow.style.transform = "rotate(0deg)";
-      } else {
-        wrapper.style.maxHeight = wrapper.scrollHeight + "px";
-        arrow.style.transform = "rotate(180deg)";
-      }
-    });
-
-    // JS Imagem
-    const input = document.getElementById("upload-photo");
-    const img = document.getElementById("ftPerfil");
-    input.addEventListener("change", function () {
-      const file = this.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function () { img.src = reader.result; };
-        reader.readAsDataURL(file);
-      }
-    });
-  </script>
 
 </body>
 

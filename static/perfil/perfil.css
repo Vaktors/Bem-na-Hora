@@ -301,8 +301,8 @@ body {
 
 /* AQUI ESTÁ O LIMITE QUE VOCÊ PEDIU (600px) */
 .accordion-wrapper.open {
-  max-height: 350px;
-  /* Se passar de 600px, cria scroll */
+  max-height: 1000px;
+  /* Aumentado para permitir mais conteúdo */
   overflow-y: auto;
   border-top: none;
 }

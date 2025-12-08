@@ -422,6 +422,11 @@ select {
 }
 
 /* --- 6. LISTAGEM E CARDS (Estilo similar ao Print) --- */
+.results-area {
+    min-height: 400px;
+    /* Garante altura mínima mesmo sem cards para manter layout */
+}
+
 .results-header {
     display: flex;
     justify-content: space-between;
@@ -489,14 +494,19 @@ select {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 .card-header-info {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+}
+
+.card-bottom-info {
+    margin-top: auto;
+    padding-top: 15px;
 }
 
 .card-header-info h4 {
