@@ -353,7 +353,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         return lista;
     }
-
-    // Dropdown logic is handled globally by header.js
-
 });

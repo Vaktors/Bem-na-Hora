@@ -42,8 +42,7 @@ a {
     /* Logo abaixo do header */
     left: 0;
     width: 100%;
-    /* ALTERADO: Reduzido drasticamente para 280px para garantir que não vaze no Desktop */
-    height: 500px;
+    height: 550px;
     /* Altura da área colorida */
     background-color: var(--bg-suave);
     /* Azul bem clarinho */

@@ -455,6 +455,7 @@ select {
 
 /* O CARD EM SI */
 .card-item {
+    width: 700px;
     background: white;
     border-radius: 15px;
     padding: 25px;
