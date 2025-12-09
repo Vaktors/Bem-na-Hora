@@ -270,8 +270,27 @@ CREATE TABLE agendamento (
     FOREIGN KEY (idProfissional) REFERENCES profissional(idProfissional) ON DELETE CASCADE,
     FOREIGN KEY (idServico) REFERENCES servicos_profissional(idServico) ON DELETE SET NULL
 );
+
 -- ==========================================================
--- 6. INSERTS INICIAIS (Para teste)
+-- 6. MÓDULO DE AVALIAÇÕES (NOVO)
+-- ==========================================================
+
+CREATE TABLE avaliacoes (
+    idAvaliacao INT PRIMARY KEY AUTO_INCREMENT,
+    
+    -- Vínculo com o atendimento real (Garante "Compra Verificada")
+    idAgendamento INT NOT NULL UNIQUE, 
+    
+    -- O conteúdo da avaliação
+    nota INT NOT NULL CHECK (nota >= 1 AND nota <= 5), -- Garante notas de 1 a 5
+    comentario TEXT,
+    data_avaliacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Chave Estrangeira
+    FOREIGN KEY (idAgendamento) REFERENCES agendamento(idAgendamento) ON DELETE CASCADE
+);
+-- ==========================================================
+-- 7. INSERTS INICIAIS (Para teste)
 -- ==========================================================
 
 -- Popular Especialidades

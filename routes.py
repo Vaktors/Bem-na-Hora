@@ -1161,9 +1161,9 @@ def register_routes(app, mail):
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-            
+
             cursor.execute("""
-                SELECT p.*, 
+                SELECT p.*,
                     GROUP_CONCAT(DISTINCT s.nome, ' - R$ ', s.preco SEPARATOR '||') as servicos,
                     GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as convenios
                 FROM profissional p
@@ -1173,14 +1173,42 @@ def register_routes(app, mail):
                 WHERE p.idProfissional = %s
                 GROUP BY p.idProfissional
             """, (prof_id,))
-            
+
             prof = cursor.fetchone()
+
+            if not prof:
+                cursor.close()
+                conn.close()
+                return jsonify({'success': False, 'message': 'Profissional não encontrado'}), 404
+
+            # Buscar média de avaliações e algumas avaliações
+            cursor.execute("""
+                SELECT AVG(av.nota) as media_avaliacao, COUNT(av.idAvaliacao) as total_avaliacoes
+                FROM agendamento a
+                LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
+                WHERE a.idProfissional = %s AND av.idAvaliacao IS NOT NULL
+            """, (prof_id,))
+
+            avaliacao_result = cursor.fetchone()
+            media_avaliacao = round(float(avaliacao_result['media_avaliacao']), 1) if avaliacao_result['media_avaliacao'] else 0.0
+            total_avaliacoes = avaliacao_result['total_avaliacoes'] or 0
+
+            # Buscar algumas avaliações recentes
+            cursor.execute("""
+                SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
+                FROM avaliacoes av
+                JOIN agendamento a ON av.idAgendamento = a.idAgendamento
+                JOIN usuario u ON a.idUsuario = u.idUsuario
+                WHERE a.idProfissional = %s
+                ORDER BY av.data_avaliacao DESC
+                LIMIT 3
+            """, (prof_id,))
+
+            avaliacoes = cursor.fetchall()
+
             cursor.close()
             conn.close()
-            
-            if not prof:
-                return jsonify({'success': False, 'message': 'Profissional não encontrado'}), 404
-            
+
             # Processar serviços
             servicos = []
             if prof['servicos']:
@@ -1188,10 +1216,13 @@ def register_routes(app, mail):
                     if ' - R$ ' in s:
                         nome, preco = s.split(' - R$ ', 1)
                         servicos.append({'nome': nome, 'preco': preco})
-            
+
             prof['servicos_list'] = servicos
             prof['convenios_list'] = prof['convenios'].split(', ') if prof['convenios'] else []
-            
+            prof['media_avaliacao'] = media_avaliacao
+            prof['total_avaliacoes'] = total_avaliacoes
+            prof['avaliacoes_recentes'] = avaliacoes
+
             return jsonify({'success': True, 'profissional': prof})
         except Exception as e:
             print(f"Erro ao buscar profissional: {e}")
@@ -1206,7 +1237,7 @@ def register_routes(app, mail):
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-            
+
             cursor.execute("""
                 SELECT c.*,
                     GROUP_CONCAT(DISTINCT p.nome, ' - ', p.preco SEPARATOR '||') as procedimentos,
@@ -1220,14 +1251,42 @@ def register_routes(app, mail):
                 WHERE c.idClinica = %s
                 GROUP BY c.idClinica
             """, (clinica_id,))
-            
+
             clinica = cursor.fetchone()
+
+            if not clinica:
+                cursor.close()
+                conn.close()
+                return jsonify({'success': False, 'message': 'Clínica não encontrada'}), 404
+
+            # Buscar média de avaliações e algumas avaliações
+            cursor.execute("""
+                SELECT AVG(av.nota) as media_avaliacao, COUNT(av.idAvaliacao) as total_avaliacoes
+                FROM agendamento a
+                LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
+                WHERE a.idClinica = %s AND av.idAvaliacao IS NOT NULL
+            """, (clinica_id,))
+
+            avaliacao_result = cursor.fetchone()
+            media_avaliacao = round(float(avaliacao_result['media_avaliacao']), 1) if avaliacao_result['media_avaliacao'] else 0.0
+            total_avaliacoes = avaliacao_result['total_avaliacoes'] or 0
+
+            # Buscar algumas avaliações recentes
+            cursor.execute("""
+                SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
+                FROM avaliacoes av
+                JOIN agendamento a ON av.idAgendamento = a.idAgendamento
+                JOIN usuario u ON a.idUsuario = u.idUsuario
+                WHERE a.idClinica = %s
+                ORDER BY av.data_avaliacao DESC
+                LIMIT 3
+            """, (clinica_id,))
+
+            avaliacoes = cursor.fetchall()
+
             cursor.close()
             conn.close()
-            
-            if not clinica:
-                return jsonify({'success': False, 'message': 'Clínica não encontrada'}), 404
-            
+
             # Processar procedimentos
             procedimentos = []
             if clinica['procedimentos']:
@@ -1235,7 +1294,7 @@ def register_routes(app, mail):
                     if ' - ' in p:
                         nome, preco = p.split(' - ', 1)
                         procedimentos.append({'nome': nome, 'preco': preco})
-            
+
             # Processar equipe
             equipe = []
             if clinica['equipe']:
@@ -1243,11 +1302,14 @@ def register_routes(app, mail):
                     if ' - ' in e:
                         nome, especialidade = e.split(' - ', 1)
                         equipe.append({'nome': nome, 'especialidade': especialidade})
-            
+
             clinica['procedimentos_list'] = procedimentos
             clinica['equipe_list'] = equipe
             clinica['convenios_list'] = clinica['convenios'].split(', ') if clinica['convenios'] else []
-            
+            clinica['media_avaliacao'] = media_avaliacao
+            clinica['total_avaliacoes'] = total_avaliacoes
+            clinica['avaliacoes_recentes'] = avaliacoes
+
             return jsonify({'success': True, 'clinica': clinica})
         except Exception as e:
             print(f"Erro ao buscar clínica: {e}")
@@ -1325,9 +1387,9 @@ def register_routes(app, mail):
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-            
+
             cursor.execute("""
-                SELECT p.*, 
+                SELECT p.*,
                     GROUP_CONCAT(DISTINCT s.nome, ' - R$ ', s.preco SEPARATOR '||') as servicos,
                     GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as convenios,
                     GROUP_CONCAT(DISTINCT esp.nome SEPARATOR ', ') as especialidades
@@ -1340,14 +1402,42 @@ def register_routes(app, mail):
                 WHERE p.idProfissional = %s
                 GROUP BY p.idProfissional, p.formacao_academica
             """, (prof_id,))
-            
+
             prof = cursor.fetchone()
+
+            if not prof:
+                cursor.close()
+                conn.close()
+                return "Profissional não encontrado", 404
+
+            # Buscar média de avaliações e algumas avaliações
+            cursor.execute("""
+                SELECT AVG(av.nota) as media_avaliacao, COUNT(av.idAvaliacao) as total_avaliacoes
+                FROM agendamento a
+                LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
+                WHERE a.idProfissional = %s AND av.idAvaliacao IS NOT NULL
+            """, (prof_id,))
+
+            avaliacao_result = cursor.fetchone()
+            media_avaliacao = round(float(avaliacao_result['media_avaliacao']), 1) if avaliacao_result['media_avaliacao'] else 0.0
+            total_avaliacoes = avaliacao_result['total_avaliacoes'] or 0
+
+            # Buscar algumas avaliações recentes
+            cursor.execute("""
+                SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
+                FROM avaliacoes av
+                JOIN agendamento a ON av.idAgendamento = a.idAgendamento
+                JOIN usuario u ON a.idUsuario = u.idUsuario
+                WHERE a.idProfissional = %s
+                ORDER BY av.data_avaliacao DESC
+                LIMIT 3
+            """, (prof_id,))
+
+            avaliacoes = cursor.fetchall()
+
             cursor.close()
             conn.close()
-            
-            if not prof:
-                return "Profissional não encontrado", 404
-            
+
             # Processar serviços
             servicos = []
             if prof['servicos']:
@@ -1355,11 +1445,11 @@ def register_routes(app, mail):
                     if ' - R$ ' in s:
                         nome, preco = s.split(' - R$ ', 1)
                         servicos.append({'nome': nome, 'preco': preco})
-            
+
             prof['servicos_list'] = servicos
             prof['convenios_list'] = prof['convenios'].split(', ') if prof['convenios'] else []
             prof['especialidades_list'] = prof['especialidades'].split(', ') if prof['especialidades'] else []
-            
+
             # Processar formação acadêmica
             formacoes = []
             if prof.get('formacao_academica'):
@@ -1368,7 +1458,11 @@ def register_routes(app, mail):
                         curso, instituicao = f.split(' - ', 1)
                         formacoes.append({'curso': curso.strip(), 'instituicao': instituicao.strip()})
             prof['formacoes_list'] = formacoes
-            
+
+            prof['media_avaliacao'] = media_avaliacao
+            prof['total_avaliacoes'] = total_avaliacoes
+            prof['avaliacoes_recentes'] = avaliacoes
+
             return render_template('doutorPerfil.html', profissional=prof)
         except Exception as e:
             print(f"Erro ao buscar profissional: {e}")

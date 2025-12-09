@@ -12,8 +12,8 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <!-- CSS Específico da Clínica -->
     <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
@@ -136,7 +136,7 @@
                 <li class="active" onclick="switchTab('sobre')">A Clínica</li>
                 <li onclick="switchTab('equipe')">Corpo Clínico</li>
                 <li onclick="switchTab('servicos')">Exames e Procedimentos</li>
-                <li onclick="switchTab('avaliacoes')">Avaliações (4.8)</li>
+                <li onclick="switchTab('avaliacoes')">Avaliações ({{ clinica.media_avaliacao|default(0) }})</li>
                 <li onclick="switchTab('local')">Localização</li>
             </ul>
         </nav>
@@ -218,35 +218,46 @@
             <!-- Aba Avaliações -->
             <div id="avaliacoes" class="tab-pane">
                 <div class="reviews-summary">
-                    <div class="big-score">4.8</div>
+                    <div class="big-score">{{ clinica.media_avaliacao|default(0) }}</div>
                     <div class="score-stars">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                        <span>(340 Avaliações)</span>
+                        {% for i in range(5) %}
+                            {% if clinica.media_avaliacao >= i+1 %}
+                                <i class="fa-solid fa-star"></i>
+                            {% elif clinica.media_avaliacao >= i+0.5 %}
+                                <i class="fa-solid fa-star-half-stroke"></i>
+                            {% else %}
+                                <i class="fa-regular fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span>({{ clinica.total_avaliacoes|default(0) }} Avaliações)</span>
                     </div>
                 </div>
                 <div class="reviews-grid">
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="reviewer-avatar">P</div>
-                            <div class="reviewer-data">
-                                <strong>Paulo Mendes</strong>
-                                <div class="small-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                    {% if clinica.avaliacoes_recentes %}
+                        {% for avaliacao in clinica.avaliacoes_recentes %}
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="reviewer-avatar">{{ avaliacao.nome_usuario[0].upper() }}</div>
+                                <div class="reviewer-data">
+                                    <strong>{{ avaliacao.nome_usuario }}</strong>
+                                    <div class="small-stars">
+                                        {% for i in range(5) %}
+                                            {% if avaliacao.nota >= i+1 %}
+                                                <i class="fa-solid fa-star"></i>
+                                            {% else %}
+                                                <i class="fa-regular fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <span class="review-date">{{ avaliacao.data_avaliacao.strftime('%d/%m/%Y') if avaliacao.data_avaliacao else 'Data não informada' }}</span>
                             </div>
-                            <span class="review-date">Ontem</span>
+                            <p class="review-text">"{{ avaliacao.comentario }}"</p>
                         </div>
-                        <p class="review-text">"Estrutura fantástica. Fiz meu ultrassom e passei no cardiologista na mesma manhã. Recomendo!"</p>
-                    </div>
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="reviewer-avatar" style="background: #007EA7">F</div>
-                            <div class="reviewer-data">
-                                <strong>Fernanda Souza</strong>
-                                <div class="small-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></div>
-                            </div>
-                            <span class="review-date">Há 1 mês</span>
-                        </div>
-                        <p class="review-text">"Ótimo atendimento na recepção, mas o estacionamento estava lotado."</p>
-                    </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="text-align: center; color: #777; padding: 40px;">Nenhuma avaliação disponível.</p>
+                    {% endif %}
                 </div>
             </div>
 
@@ -254,7 +265,16 @@
             <div id="local" class="tab-pane">
                 <h2 class="section-title">Como Chegar</h2>
                 <div class="location-container">
-                    <div id="map" class="map-container" data-endereco="Rua Domingos de Morais, 500" data-bairro="Vila Mariana" data-cidade="São Paulo" data-estado="SP"></div>
+                    <div id="map-container" style="position: relative; width: 100%; height: 300px;">
+                        <div id="map" 
+                            class="map-style"
+                            style="width: 100%; height: 100%; z-index: 1;"
+                            data-endereco="{{ profissional.endereco }}" 
+                            data-bairro="{{ profissional.bairro }}" 
+                            data-cidade="{{ profissional.cidade }}" 
+                            data-estado="{{ profissional.estado }}">
+                        </div>
+                    </div>
                     <div class="address-details">
                         <div class="address-item">
                             <i class="fa-solid fa-location-dot icon-box"></i>
@@ -316,9 +336,6 @@
             <div class="footer-copy">&copy; 2025 Bem Na Hora. Todos os direitos reservados.</div>
         </div>
     </footer>
-
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script src="{{ url_for('static', filename='clinicaPerfil/clinicaPerfil.js') }}"></script>
     <script src="{{ url_for('static', filename='header.js') }}"></script>

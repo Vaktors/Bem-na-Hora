@@ -1,88 +1,170 @@
+// --- FUNÇÃO DE ABAS (Mantida Original) ---
 function switchTab(tabId) {
-    // 1. Remove a classe 'active' de todas as abas (li)
     const navItems = document.querySelectorAll('.profile-tabs li');
     navItems.forEach(item => {
         item.classList.remove('active');
     });
 
-    // 2. Esconde todo o conteúdo
     const panes = document.querySelectorAll('.tab-pane');
     panes.forEach(pane => {
         pane.classList.remove('active-pane');
     });
 
-    // 3. Adiciona 'active' na aba clicada
-    // (Como a função é chamada no onclick, precisamos identificar qual elemento chamou)
-    // Uma forma segura é buscar pelo texto ou passar 'event'
-    // Aqui vamos iterar para achar qual tem o onclick correspondente ou usar o event.target se passado
-    
-    // Simplificação: vamos usar o event.currentTarget
-    event.currentTarget.classList.add('active');
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
 
-    // 4. Mostra o conteúdo correspondente ao ID
     const activePane = document.getElementById(tabId);
     if (activePane) {
         activePane.classList.add('active-pane');
     }
 }
 
-// Dropdown logic is handled globally by header.js
+// --- LÓGICA DE INTERFACE E MAPA ---
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- DROPDOWN (Mantido Original) ---
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+        const profileWrapper = target.closest('.profile-pic');
+        if (profileWrapper) {
+            const menu = profileWrapper.querySelector('.dropdown-menu');
+            if (menu) {
+                menu.classList.toggle('show');
+                e.stopPropagation();
+            }
+            return;
+        }
+        document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+            menu.classList.remove('show');
+        });
+    });
 
-// Variável para armazenar o mapa
-let map = null;
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+        }
+    });
 
-// Função para inicializar o mapa
+    // --- LÓGICA DO MAPA (Corrigida) ---
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const target = mutation.target;
+                // Detecta quando a aba de local fica ativa
+                if (target.id === 'local' && target.classList.contains('active-pane')) {
+                    setTimeout(() => {
+                        initMap();
+                    }, 200);
+                }
+            }
+        });
+    });
+
+    const localTab = document.getElementById('local');
+    if (localTab) {
+        observer.observe(localTab, { attributes: true });
+    } else {
+        initMap();
+    }
+});
+
+// Variável global para o mapa
+let mapInstance = null;
+
 function initMap() {
     const mapElement = document.getElementById('map');
-    if (!mapElement || map) return; // Já inicializado
+    
+    if (!mapElement) return;
+    if (typeof L === 'undefined') {
+        console.error("Leaflet (L) não encontrado. Verifique os imports no HTML.");
+        return;
+    }
+    
+    // Correção: Se o mapa já existe, recalcula o tamanho para não ficar cinza
+    if (mapInstance) {
+        mapInstance.invalidateSize();
+        return;
+    }
 
-    // Obtém os dados do endereço dos atributos data
     const endereco = mapElement.getAttribute('data-endereco') || '';
     const bairro = mapElement.getAttribute('data-bairro') || '';
     const cidade = mapElement.getAttribute('data-cidade') || '';
     const estado = mapElement.getAttribute('data-estado') || '';
 
-    // Monta o endereço completo para geocoding
-    const fullAddress = [endereco, bairro, cidade, estado].filter(Boolean).join(', ');
+    const fullAddress = [endereco, bairro, cidade, estado, "Brasil"].filter(Boolean).join(', ');
 
-    // Inicializa o mapa com coordenadas padrão (São Paulo)
-    map = L.map('map').setView([-23.5505, -46.6333], 13);
+    try {
+        mapInstance = L.map('map').setView([-14.2350, -51.9253], 4); 
 
-    // Adiciona o tile layer do OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(mapInstance);
 
-    // Se temos um endereço, faz geocoding
-    if (fullAddress) {
-        geocodeAddress(fullAddress);
+        if (fullAddress.length > 10) {
+            geocodeAddress(fullAddress);
+        } else {
+            showMapPlaceholder("Endereço não informado.");
+        }
+    } catch (e) {
+        console.error("Erro mapa:", e);
     }
 }
 
-// Função para geocodificar o endereço
 function geocodeAddress(address) {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
 
-    fetch(url)
+    fetch(url, { headers: { 'User-Agent': 'BemNaHoraApp/1.0' } })
         .then(response => response.json())
         .then(data => {
             if (data && data.length > 0) {
                 const lat = parseFloat(data[0].lat);
                 const lon = parseFloat(data[0].lon);
 
-                // Centraliza o mapa na localização encontrada
-                map.setView([lat, lon], 16);
+                mapInstance.setView([lat, lon], 16);
 
-                // Adiciona um marcador
-                L.marker([lat, lon]).addTo(map)
-                    .bindPopup(address)
+                L.marker([lat, lon]).addTo(mapInstance)
+                    .bindPopup(`<b>Endereço:</b><br>${address}`)
                     .openPopup();
             } else {
                 console.warn('Endereço não encontrado:', address);
-                // Mantém a visualização padrão
+                // Tentativa de fallback (buscar só bairro/cidade)
+                if(address.includes(',')) {
+                    const fallbackAddress = address.split(',').slice(1).join(',');
+                    if(fallbackAddress.trim().length > 5) {
+                         geocodeAddress(fallbackAddress.trim());
+                         return;
+                    }
+                }
+                showMapPlaceholder("Não foi possível localizar o endereço exato.");
             }
         })
         .catch(error => {
-            console.error('Erro no geocoding:', error);
+            console.error('Erro Geocoding:', error);
+            showMapPlaceholder("Erro ao carregar mapa.");
         });
+}
+
+function showMapPlaceholder(msg) {
+    const mapElement = document.getElementById('map');
+    if (mapElement) {
+        if(mapInstance) {
+            mapInstance.remove();
+            mapInstance = null;
+        }
+
+        const endereco = mapElement.getAttribute('data-endereco') || '';
+        const cidade = mapElement.getAttribute('data-cidade') || '';
+        const linkGoogle = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco + ' ' + cidade)}`;
+
+        mapElement.innerHTML = `
+            <div class="map-placeholder" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; padding:20px; background:#f9f9f9;">
+                <i class="fa-solid fa-map-location-dot" style="font-size:40px; color:#ccc; margin-bottom:10px;"></i>
+                <p style="color:#666; margin-bottom:15px;">${msg}</p>
+                <a href="${linkGoogle}" target="_blank" class="btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+                   <i class="fa-solid fa-external-link-alt"></i> Abrir no Google Maps
+                </a>
+            </div>
+        `;
+    }
 }
