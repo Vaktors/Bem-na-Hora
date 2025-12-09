@@ -18,12 +18,12 @@
 <body>
     <header class="header">
         <div class="logo">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Bem Na Hora">
+            <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Bem Na Hora"></a>
         </div>
         <nav class="nav">
             <a href="#" class="nav-button1">Saiba mais</a>
-            <a href="#" class="nav-button2">Consultas</a>
-            <a href="#" class="nav-button3">Torne-se<br>Parceiro</a>
+            <a href="{{ url_for('vitrine') }}" class="nav-button2">Consultas</a>
+            <a href="{{ url_for('cadastro_parceiro') }}" class="nav-button3">Torne-se<br>Parceiro</a>
         </nav>
         <div class="header-spacer"></div>
     </header>
@@ -62,10 +62,10 @@
                         <h2 class="title">Criar Conta</h2>
 
                         <form class="main-form register-grid">
-                            <input type="text" placeholder="Nome Completo" required>
-                            <input type="email" placeholder="Email" required>
+                            <input type="text" id="nome" placeholder="Nome Completo" required>
+                            <input type="email" id="email" placeholder="Email" required>
 
-                            <input type="text" placeholder="CPF" maxlength="14" required>
+                            <input type="text" id="cpf" placeholder="CPF" maxlength="14" required>
 
                             <div class="custom-select-wrapper">
                                 <div class="custom-select" id="selectConvenio">
@@ -110,10 +110,10 @@
                                 </select>
                             </div>
 
-                            <input type="text" class="input-data" placeholder="Data de Nascimento" maxlength="10"
+                            <input type="text" id="data-nasc" class="input-data" placeholder="Data de Nascimento" maxlength="10"
                                 required>
-                            <input type="tel" placeholder="Telefone (DDD + Número)" required>
-                            <input type="password" placeholder="Senha" required>
+                            <input type="tel" id="telefone" placeholder="Telefone (DDD + Número)" required>
+                            <input type="password" id="senha" placeholder="Senha" required>
 
                             <div class="terms-checkbox">
                                 <input type="checkbox" id="terms" required>

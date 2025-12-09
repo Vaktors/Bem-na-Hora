@@ -32,9 +32,43 @@ document.addEventListener('DOMContentLoaded', () => {
     inputFoto.addEventListener('change', function (evento) {
         const arquivo = evento.target.files[0];
         if (arquivo) {
+            // Validação
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(arquivo.type)) {
+                alert('Tipo de arquivo não permitido. Use: PNG, JPG, JPEG, GIF ou WEBP.');
+                return;
+            }
+            
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (arquivo.size > maxSize) {
+                alert('Arquivo muito grande. Máximo 5MB.');
+                return;
+            }
+            
             const leitor = new FileReader();
             leitor.onload = function (e) {
                 previewContainer.innerHTML = `<img src="${e.target.result}" alt="Foto de Perfil">`;
+                
+                // Enviar foto para o servidor
+                const formData = new FormData();
+                formData.append('foto', arquivo);
+                
+                fetch('/api/profissional/upload-foto', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Foto enviada com sucesso');
+                    } else {
+                        alert('Erro ao enviar foto: ' + (data.message || 'Erro desconhecido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao enviar foto:', error);
+                    alert('Erro ao conectar com o servidor para upload da foto');
+                });
             }
             leitor.readAsDataURL(arquivo);
         }
@@ -241,25 +275,59 @@ document.addEventListener('DOMContentLoaded', () => {
             nome: document.getElementById('nome-exibicao').value,
             especialidade: document.getElementById('especialidade-input').value,
             anosExperiencia: document.getElementById('anos-experiencia').value,
-            focos: Array.from(document.querySelectorAll('#focos-container input:checked')).map(cb => cb.value),
             servicos: obterServicosDoDOM(),
-            biografia: document.getElementById('biografia').value,
             formacao: obterFormacaoDoDOM(),
+            biografia: document.getElementById('biografia').value,
 
             endereco: document.getElementById('endereco').value,
             bairro: document.getElementById('bairro').value,
             cidade: document.getElementById('cidade').value,
             telefone: document.getElementById('telefone').value,
-            // NOVO: Coleta horários
             horarioSemana: document.getElementById('horario-semana').value,
             horarioFimSemana: document.getElementById('horario-fim-semana').value,
 
-            modalidades: Array.from(document.querySelectorAll('.modalidades-check:checked')).map(cb => cb.value),
             convenios: Array.from(document.querySelectorAll('#convenios-container input:checked')).map(cb => cb.value)
         };
 
-        console.log("Dados prontos para envio:", dadosPerfil);
-        alert("Alterações salvas localmente! (Verifique o console para ver o objeto JSON)");
+        // Enviar foto se houver
+        const fotoInput = document.getElementById('input-foto');
+        const formData = new FormData();
+        
+        if (fotoInput.files[0]) {
+            formData.append('foto', fotoInput.files[0]);
+        }
+        
+        formData.append('dados', JSON.stringify(dadosPerfil));
+
+        // Enviar para API
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Salvando...';
+
+        fetch('/api/profissional/atualizar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dadosPerfil)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Perfil atualizado com sucesso!');
+                // Opcional: recarregar página ou atualizar UI
+            } else {
+                alert('Erro: ' + (data.message || 'Erro ao salvar'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao conectar com o servidor');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Salvar Alterações';
+        });
     });
 
     function obterServicosDoDOM() {
@@ -285,5 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         return lista;
     }
+
+    // Dropdown logic is handled globally by header.js
 
 });

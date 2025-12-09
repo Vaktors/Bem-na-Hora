@@ -18,14 +18,31 @@
     <!-- HEADER -->
     <header class="header">
         <div class="logo">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Bem Na Hora">
+            <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Bem Na Hora"></a>
         </div>
         <nav class="nav">
             <a href="#" class="nav-button1">Saiba mais</a>
-            <a href="#" class="nav-button2">Consultas</a>
-            <a href="#" class="nav-button3">Torne-se<br>Parceiro</a>
+            <a href="{{ url_for('vitrine') }}" class="nav-button2">Consultas</a>
+            <a href="{{ url_for('cadastro_parceiro') }}" class="nav-button3">Torne-se<br>Parceiro</a>
         </nav>
-        <button class="btn-login">Login</button>
+        {% if usuario_logado %}
+        <div class="profile-pic">
+            <img src="{% if foto_perfil_usuario %}{{ url_for('static', filename='uploads/' + foto_perfil_usuario) }}{% else %}https://cdn-icons-png.flaticon.com/512/3135/3135715.png{% endif %}" alt="Perfil">
+            <div class="dropdown-menu">
+                {% if tipo_usuario == 'usuario' %}
+                    <a href="{{ url_for('perfil_usuario') }}" class="dropdown-item">Meu Perfil</a>
+                {% elif tipo_usuario == 'profissional' %}
+                    <a href="{{ url_for('doutor_editar') }}" class="dropdown-item">Editar Anúncio</a>
+                {% elif tipo_usuario == 'clinica' %}
+                    <a href="{{ url_for('clinica_editar') }}" class="dropdown-item">Editar Anúncio</a>
+                {% endif %}
+                <a href="{{ url_for('agenda') }}" class="dropdown-item">Agenda</a>
+                <button class="dropdown-item" onclick="logout()">Sair</button>
+            </div>
+        </div>
+        {% else %}
+        <a href="{{ url_for('cadastro_usuario') }}" class="btn-login">Login</a>
+        {% endif %}
     </header>
 
 
@@ -161,7 +178,7 @@
         <!-- RESULTADOS (Cards) -->
         <section class="results-area">
             <div class="results-header">
-                <h3>145 Profissionais encontrados</h3>
+                <h3 id="results-count">Carregando...</h3>
                 <div class="sort-wrapper">
                     <span>Ordenar por:</span>
 
@@ -183,94 +200,8 @@
                 </div>
             </div>
 
-            <!-- CARD 1: Profissional -->
-            <div class="card-item">
-                <div class="card-logo">
-                    <!-- Icone representando foto -->
-                    <i class="fa-solid fa-user-doctor"></i>
-                </div>
-                <div class="card-info">
-                    <div class="card-header-info">
-                        <h4>Dr. Carlos Eduardo</h4>
-                        <span class="badge badge-pro">Profissional</span>
-                    </div>
-                    <p class="specialty">Cardiologista • 15 anos de exp.</p>
-                    <div class="card-tags">
-                        <span class="tag">Unimed</span>
-                        <span class="tag">Bradesco</span>
-                        <span class="tag">Particular</span>
-                    </div>
-                    <div class="location-info">
-                        <i class="fa-solid fa-map-pin"></i> Centro, São Paulo - SP
-                    </div>
-                </div>
-                <div class="card-action">
-                    <div class="price-tag">
-                        <span>Consulta</span>
-                        <strong>R$ 250,00</strong>
-                    </div>
-                    <a href="#" class="btn-view">Ver Perfil <i class="fa-solid fa-arrow-right"></i></a>
-                    <span class="last-seen">Agenda aberta hoje</span>
-                </div>
-            </div>
-
-            <!-- CARD 2: Clínica -->
-            <div class="card-item">
-                <div class="card-logo logo-clinic">
-                    <i class="fa-solid fa-hospital"></i>
-                </div>
-                <div class="card-info">
-                    <div class="card-header-info">
-                        <h4>Clínica Bem Estar</h4>
-                        <span class="badge badge-clinic">Clínica</span>
-                    </div>
-                    <p class="specialty">Multidisciplinar • Fisioterapia e Ortopedia</p>
-                    <div class="card-tags">
-                        <span class="tag">Amil</span>
-                        <span class="tag">SulAmérica</span>
-                        <span class="tag">Particular</span>
-                    </div>
-                    <div class="location-info">
-                        <i class="fa-solid fa-map-pin"></i> Vila Mariana, São Paulo - SP
-                    </div>
-                </div>
-                <div class="card-action">
-                    <div class="price-tag">
-                        <span>A partir de</span>
-                        <strong>R$ 180,00</strong>
-                    </div>
-                    <a href="#" class="btn-view">Ver Clínica <i class="fa-solid fa-arrow-right"></i></a>
-                    <span class="last-seen">3 profissionais disponíveis</span>
-                </div>
-            </div>
-
-            <!-- CARD 3: Profissional -->
-            <div class="card-item">
-                <div class="card-logo">
-                    <i class="fa-solid fa-user-nurse"></i>
-                </div>
-                <div class="card-info">
-                    <div class="card-header-info">
-                        <h4>Dra. Ana Beatriz</h4>
-                        <span class="badge badge-pro">Profissional</span>
-                    </div>
-                    <p class="specialty">Dermatologista • Estética Avançada</p>
-                    <div class="card-tags">
-                        <span class="tag">Particular</span>
-                        <span class="tag">Reembolso</span>
-                    </div>
-                    <div class="location-info">
-                        <i class="fa-solid fa-video"></i> Atende Online e Presencial
-                    </div>
-                </div>
-                <div class="card-action">
-                    <div class="price-tag">
-                        <span>Consulta</span>
-                        <strong>R$ 350,00</strong>
-                    </div>
-                    <a href="#" class="btn-view">Ver Perfil <i class="fa-solid fa-arrow-right"></i></a>
-                    <span class="last-seen">Próxima data: Amanhã</span>
-                </div>
+            <div id="cards-container">
+                <!-- Cards serão inseridos aqui via JavaScript -->
             </div>
 
         </section>
@@ -314,6 +245,7 @@
     </footer>
 
     <script src="{{ url_for('static', filename='vitrine/vitrine.js') }}"></script>
+    <script src="{{ url_for('static', filename='header.js') }}"></script>
 </body>
 
 </html>

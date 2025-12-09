@@ -37,8 +37,8 @@ if(btnToLogin) btnToLogin.addEventListener('click', (e) => { e.preventDefault();
    ========================================================================== */
 
 // Selecionar inputs específicos
-const phoneInput = document.querySelector('input[type="tel"]');
-const cpfInput = document.querySelector('input[placeholder="CPF"]'); // Melhor adicionar id="cpf" no HTML, mas assim funciona
+const phoneInput = document.getElementById('telefone');
+const cpfInput = document.getElementById('cpf');
 
 // --- MÁSCARA DE TELEFONE (DD) 9XXXX-XXXX ---
 if (phoneInput) {
@@ -154,11 +154,11 @@ if (registerBtn) {
         e.preventDefault(); // Impede o envio padrão para validarmos primeiro
 
         // 1. Coleta os valores
-        const nome = registerForm.querySelector('input[placeholder="Nome Completo"]').value;
-        const email = registerForm.querySelector('input[placeholder="Email"]').value;
+        const nome = document.getElementById('nome').value.trim();
+        const email = document.getElementById('email').value.trim().toLowerCase();
         const cpf = cpfInput.value;
         const telefone = phoneInput.value;
-        const senha = registerForm.querySelector('input[placeholder="Senha"]').value;
+        const senha = document.getElementById('senha').value;
         const terms = document.getElementById('terms').checked;
 
         // 2. Validações Sequenciais
@@ -186,15 +186,107 @@ if (registerBtn) {
             return;
         }
 
-        // 3. Se chegou aqui, está tudo válido!
-        // Aqui você faria o fetch() para o seu backend Flask no futuro
-        showToast('Sucesso!', 'Cadastro realizado. Redirecionando...', 'success');
+        // 3. Coletar dados adicionais
+        const genero = document.getElementById('genero').value;
+        const convenio = document.getElementById('convenio').value;
+        const data_nasc = document.getElementById('data-nasc').value;
+
+        if (!genero || !data_nasc) {
+            showToast('Atenção', 'Preencha gênero e data de nascimento.', 'warning');
+            return;
+        }
+
+        // 4. Enviar para API
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'Enviando...';
+
+        fetch('/api/cadastro', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                nome: nome,
+                email: email,
+                cpf: cpf,
+                genero: genero,
+                data_nasc: data_nasc,
+                telefone: telefone,
+                senha: senha,
+                convenio: convenio
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            registerBtn.disabled = false;
+            registerBtn.textContent = 'INSCREVER';
+            
+            if (data.success) {
+                showToast('Sucesso!', data.message, 'success');
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1500);
+            } else {
+                showToast('Erro', data.message, 'error');
+            }
+        })
+        .catch(error => {
+            registerBtn.disabled = false;
+            registerBtn.textContent = 'INSCREVER';
+            console.error('Erro:', error);
+            showToast('Erro', 'Erro ao processar cadastro. Tente novamente.', 'error');
+        });
+    });
+}
+
+// --- LÓGICA DE LOGIN ---
+const loginForm = document.querySelector('.login-section form');
+if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
         
-        // Simulação de sucesso
-        console.log("Dados prontos para envio:", { nome, email, cpf, telefone, senha });
-        setTimeout(() => {
-            switchToLoginMode();
-        }, 2000);
+        const email = loginForm.querySelector('input[type="email"]').value;
+        const senha = loginForm.querySelector('input[type="password"]').value;
+        
+        if (!email || !senha) {
+            showToast('Atenção', 'Preencha email e senha.', 'warning');
+            return;
+        }
+        
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Entrando...';
+        
+        fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                senha: senha
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'ENTRAR';
+            
+            if (data.success) {
+                showToast('Sucesso!', data.message, 'success');
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1000);
+            } else {
+                showToast('Erro', data.message, 'error');
+            }
+        })
+        .catch(error => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'ENTRAR';
+            console.error('Erro:', error);
+            showToast('Erro', 'Erro ao fazer login. Tente novamente.', 'error');
+        });
     });
 }
 
@@ -286,7 +378,7 @@ document.addEventListener('click', () => {
 /* --- PARTE 7: CALENDÁRIO FLATPICKR + MÁSCARA --- */
 
 // 1. Seleciona o elemento
-const dateInput = document.querySelector(".input-data");
+const dateInput = document.getElementById('data-nasc');
 
 // 2. Verifica se o input existe para não dar erro em outras páginas
 if (dateInput) {
@@ -326,67 +418,4 @@ if (dateInput) {
             calendario.setDate(value, false);
         }
     });
-
-
-    /* FUNÇÃO GLOBAL DE ALERTA 
-   Copie isso para um arquivo JS comum a todas as páginas
-*/
-
-function showToast(title, message, type = 'success') {
-    // 1. Verifica se o container existe, se não, cria
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        document.body.appendChild(container);
-    }
-
-    // 2. Define ícones baseados no tipo
-    const icons = {
-        success: '<i class="fa-solid fa-circle-check"></i>', // Requer FontAwesome
-        error: '<i class="fa-solid fa-circle-xmark"></i>',
-        warning: '<i class="fa-solid fa-triangle-exclamation"></i>'
-    };
-
-    // Fallback se não tiver FontAwesome (usa emojis/unicode)
-    const fallbackIcons = {
-        success: '✔',
-        error: '✖',
-        warning: '⚠'
-    };
-    
-    // Verifica se FontAwesome está carregado (seus arquivos tem o link, mas por segurança)
-    const hasFontAwesome = document.querySelector('link[href*="font-awesome"]');
-    const iconHtml = hasFontAwesome ? icons[type] : fallbackIcons[type];
-
-    // 3. Cria o elemento do Toast
-    const toast = document.createElement('div');
-    toast.classList.add('toast', type);
-    
-    toast.innerHTML = `
-        <div class="toast-icon">${iconHtml}</div>
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-message">${message}</div>
-        </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
-    `;
-
-    // 4. Adiciona ao container
-    container.appendChild(toast);
-
-    // 5. Trigger da animação (pequeno delay para o CSS processar)
-    requestAnimationFrame(() => {
-        toast.classList.add('show');
-    });
-
-    // 6. Remove automaticamente após 4 segundos
-    setTimeout(() => {
-        toast.classList.remove('show');
-        // Espera a animação de saída terminar para remover do DOM
-        setTimeout(() => {
-            if (toast.parentElement) toast.remove();
-        }, 400); 
-    }, 4000);
-}
 }

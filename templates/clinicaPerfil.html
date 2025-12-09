@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clínica Bem Estar Integral | Bem Na Hora</title>
+    <title>{% if clinica.nomeExibicao %}{{ clinica.nomeExibicao }}{% else %}Clínica{% endif %} | Bem Na Hora</title>
     <link rel="icon" href="{{ url_for('static', filename='img/relogio.png') }}">
     
     <!-- Fonte Poppins -->
@@ -22,14 +22,31 @@
     <!-- HEADER -->
     <header class="header">
         <div class="logo">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Bem Na Hora">
+            <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Bem Na Hora"></a>
         </div>
         <nav class="nav">
             <a href="#" class="nav-button1">Saiba mais</a>
-            <a href="#" class="nav-button2">Consultas</a>
-            <a href="#" class="nav-button3">Torne-se<br>Parceiro</a>
+            <a href="{{ url_for('vitrine') }}" class="nav-button2">Consultas</a>
+            <a href="{{ url_for('cadastro_parceiro') }}" class="nav-button3">Torne-se<br>Parceiro</a>
         </nav>
-        <button class="btn-login">Login</button>
+        {% if usuario_logado %}
+        <div class="profile-pic">
+            <img src="{% if foto_perfil_usuario %}{{ url_for('static', filename='uploads/' + foto_perfil_usuario) }}{% else %}https://cdn-icons-png.flaticon.com/512/3135/3135715.png{% endif %}" alt="Perfil">
+            <div class="dropdown-menu">
+                {% if tipo_usuario == 'usuario' %}
+                    <a href="{{ url_for('perfil_usuario') }}" class="dropdown-item">Meu Perfil</a>
+                {% elif tipo_usuario == 'profissional' %}
+                    <a href="{{ url_for('doutor_editar') }}" class="dropdown-item">Editar Anúncio</a>
+                {% elif tipo_usuario == 'clinica' %}
+                    <a href="{{ url_for('clinica_editar') }}" class="dropdown-item">Editar Anúncio</a>
+                {% endif %}
+                <a href="{{ url_for('agenda') }}" class="dropdown-item">Agenda</a>
+                <button class="dropdown-item" onclick="logout()">Sair</button>
+            </div>
+        </div>
+        {% else %}
+        <a href="{{ url_for('cadastro_usuario') }}" class="btn-login">Login</a>
+        {% endif %}
     </header>
 
     <!-- FUNDO DECORATIVO -->
@@ -64,14 +81,13 @@
                 <div class="profile-right">
                     <div class="profile-header">
                         <div class="name-area">
-                            <h1>Clínica Bem Estar Integral</h1>
+                            <h1>{% if clinica.nomeExibicao %}{{ clinica.nomeExibicao }}{% else %}Clínica{% endif %}</h1>
                             <div class="social-links">
-                                <a href="#" title="Site Oficial"><i class="fa-solid fa-globe"></i></a>
-                                <a href="#" title="Facebook"><i class="fa-brands fa-facebook"></i></a>
-                                <a href="#" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                                {% if clinica.site_url %}<a href="{{ clinica.site_url }}" target="_blank" title="Site Oficial"><i class="fa-solid fa-globe"></i></a>{% endif %}
+                                {% if clinica.instagram %}<a href="https://instagram.com/{{ clinica.instagram }}" target="_blank" title="Instagram"><i class="fa-brands fa-instagram"></i></a>{% endif %}
                             </div>
                         </div>
-                        
+
                         <div class="action-buttons">
                             <button class="btn-primary"><i class="fa-brands fa-whatsapp"></i> Agendar</button>
                             <button class="btn-secondary"><i class="fa-solid fa-phone"></i> Ligar</button>
@@ -81,26 +97,30 @@
                     <div class="quick-stats">
                         <div class="stat-item">
                             <span class="stat-label">Tipo</span>
-                            <span class="stat-value">Multidisciplinar</span>
+                            <span class="stat-value">{% if clinica.tipo %}{{ clinica.tipo }}{% else %}Multidisciplinar{% endif %}</span>
                         </div>
+                        {% if clinica.ano_fundacao %}
                         <div class="stat-item">
                             <span class="stat-label">No Mercado Desde</span>
-                            <span class="stat-value">2005</span>
+                            <span class="stat-value">{{ clinica.ano_fundacao }}</span>
                         </div>
+                        {% endif %}
+                        {% if clinica.diretor_tecnico %}
                         <div class="stat-item">
                             <span class="stat-label">Diretor Técnico</span>
-                            <span class="stat-value">Dr. Silva (CRM 123)</span>
+                            <span class="stat-value">{{ clinica.diretor_tecnico }}</span>
                         </div>
+                        {% endif %}
                     </div>
 
                     <div class="skills-section">
                         <span class="stat-label">Infraestrutura & Facilidades</span>
                         <div class="tags-list">
-                            <span class="pill"><i class="fa-solid fa-wheelchair"></i> Acessibilidade</span>
-                            <span class="pill"><i class="fa-solid fa-square-parking"></i> Estacionamento</span>
-                            <span class="pill"><i class="fa-solid fa-wifi"></i> Wi-Fi Grátis</span>
-                            <span class="pill">Amil</span>
-                            <span class="pill">SulAmérica</span>
+                            {% if clinica.convenios_list %}
+                            {% for convenio in clinica.convenios_list %}
+                            <span class="pill">{{ convenio }}</span>
+                            {% endfor %}
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -122,53 +142,47 @@
         <section class="tab-content" id="content-area">
             
             <!-- Aba Sobre -->
-            <div id="sobre" class="tab-pane active-pane">
-                <h2 class="section-title">Nossa História e Missão</h2>
-                <div class="text-content">
-                    <p>A <strong>Clínica Bem Estar Integral</strong> nasceu com o propósito de oferecer saúde de qualidade em um ambiente acolhedor e tecnológico. Há quase 20 anos, somos referência na região da Vila Mariana pelo atendimento humanizado.</p>
-                    <p>Contamos com mais de 15 especialidades médicas e um centro de diagnóstico completo, permitindo que nossos pacientes realizem consultas e exames no mesmo local, otimizando tempo e garantindo agilidade no diagnóstico.</p>
-                    
-                    <h3 class="subsection-title">Nossa Estrutura</h3>
-                    <div class="clinic-gallery">
-                        <div class="gallery-item item-1"><i class="fa-solid fa-image"></i> Recepção</div>
-                        <div class="gallery-item item-2"><i class="fa-solid fa-image"></i> Consultório 1</div>
-                        <div class="gallery-item item-3"><i class="fa-solid fa-image"></i> Sala de Exames</div>
-                    </div>
-                </div>
-            </div>
+             <div id="sobre" class="tab-pane active-pane">
+                 <h2 class="section-title">Nossa História e Missão</h2>
+                 <div class="text-content">
+                     {% if clinica.historia %}
+                     {{ clinica.historia|replace('\n', '</p><p>')|safe }}
+                     {% else %}
+                     <p>A <strong>{% if clinica.nomeExibicao %}{{ clinica.nomeExibicao }}{% else %}Clínica{% endif %}</strong> nasceu com o propósito de oferecer saúde de qualidade em um ambiente acolhedor e tecnológico.</p>
+                     <p>Contamos com especialidades médicas e um centro de diagnóstico completo, permitindo que nossos pacientes realizem consultas e exames no mesmo local, otimizando tempo e garantindo agilidade no diagnóstico.</p>
+                     {% endif %}
+
+                     <h3 class="subsection-title">Nossa Estrutura</h3>
+                     <div class="clinic-gallery">
+                         <div class="gallery-item item-1"><i class="fa-solid fa-image"></i> Recepção</div>
+                         <div class="gallery-item item-2"><i class="fa-solid fa-image"></i> Consultório 1</div>
+                         <div class="gallery-item item-3"><i class="fa-solid fa-image"></i> Sala de Exames</div>
+                     </div>
+                 </div>
+             </div>
 
             <!-- Aba Corpo Clínico -->
-            <div id="equipe" class="tab-pane">
-                <h2 class="section-title">Nossos Especialistas</h2>
-                <p class="section-subtitle">Conheça a equipe médica pronta para te atender.</p>
-                
-                <div class="team-grid">
-                    <div class="team-card">
-                        <div class="team-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-                        <h4>Dr. Carlos Eduardo</h4>
-                        <span class="specialty-label">Cardiologia</span>
-                        <div class="team-xp"><i class="fa-solid fa-medal"></i> 15 anos de exp.</div>
-                    </div>
-                    <div class="team-card">
-                        <div class="team-avatar"><i class="fa-solid fa-user-nurse"></i></div>
-                        <h4>Dra. Ana Beatriz</h4>
-                        <span class="specialty-label">Dermatologia</span>
-                        <div class="team-xp"><i class="fa-solid fa-medal"></i> 8 anos de exp.</div>
-                    </div>
-                    <div class="team-card">
-                        <div class="team-avatar"><i class="fa-solid fa-stethoscope"></i></div>
-                        <h4>Dr. Roberto Lima</h4>
-                        <span class="specialty-label">Ortopedia</span>
-                        <div class="team-xp"><i class="fa-solid fa-medal"></i> 22 anos de exp.</div>
-                    </div>
-                    <div class="team-card">
-                        <div class="team-avatar"><i class="fa-solid fa-brain"></i></div>
-                        <h4>Dra. Juliana Costa</h4>
-                        <span class="specialty-label">Neurologia</span>
-                        <div class="team-xp"><i class="fa-solid fa-medal"></i> 12 anos de exp.</div>
-                    </div>
-                </div>
-            </div>
+             <div id="equipe" class="tab-pane">
+                 <h2 class="section-title">Nossos Especialistas</h2>
+                 <p class="section-subtitle">Conheça a equipe médica pronta para te atender.</p>
+
+                 <div class="team-grid">
+                     {% if clinica.equipe_list %}
+                         {% for membro in clinica.equipe_list %}
+                         <div class="team-card">
+                             <div class="team-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+                             <h4>{{ membro.nome }}</h4>
+                             <span class="specialty-label">{{ membro.especialidade }}</span>
+                             {% if membro.experiencia %}
+                             <div class="team-xp"><i class="fa-solid fa-medal"></i> {{ membro.experiencia }}</div>
+                             {% endif %}
+                         </div>
+                         {% endfor %}
+                     {% else %}
+                         <p style="text-align: center; color: #777; padding: 40px;">Equipe médica não cadastrada.</p>
+                     {% endif %}
+                 </div>
+             </div>
 
             <!-- Aba Serviços -->
             <div id="servicos" class="tab-pane">
@@ -305,5 +319,6 @@
     </footer>
 
     <script src="{{ url_for('static', filename='clinicaPerfil/clinicaPerfil.js') }}"></script>
+    <script src="{{ url_for('static', filename='header.js') }}"></script>
 </body>
 </html>

@@ -82,9 +82,14 @@ a {
 .profile-card {
     background: var(--branco);
     border-radius: 40px;
+    height: 500px;
+    /* Altura fixa */
     padding: 50px;
     box-shadow: 0 20px 40px rgba(0, 52, 89, 0.08);
-    margin-bottom: 10px;
+    margin-bottom: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .profile-content-wrapper {

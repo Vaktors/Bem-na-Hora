@@ -25,3 +25,5 @@ function switchTab(tabId) {
         activePane.classList.add('active-pane');
     }
 }
+
+// Dropdown logic is handled globally by header.js

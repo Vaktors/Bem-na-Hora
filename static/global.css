@@ -265,7 +265,15 @@ ul {
   height: 100px;
   width: auto;
   margin-bottom: 15px;
+  display: inline-block;
+  cursor: pointer;
+  transform-origin: center center;
 }
+
+.footer-logo img:hover {
+  animation: shake 0.5s ease-in-out;
+}
+
 
 .footer-title {
   color: var(--branco);

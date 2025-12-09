@@ -42,23 +42,114 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUI();
     }
 
-    // Opcional: Efeito simples nos botões de Card
-    const cards = document.querySelectorAll('.card-item');
-    cards.forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            // Lógica visual extra se desejar
-        });
-    });
-
-    // Aqui você pode adicionar lógica para filtrar os cards 
-    // baseado no toggle "Clínica vs Profissional" se desejar fazer via JS puro
+    // Carregar cards dinamicamente
+    let tipoAtual = 'profissional';
+    
+    function carregarCards(tipo) {
+        tipoAtual = tipo;
+        const container = document.getElementById('cards-container');
+        const countEl = document.getElementById('results-count');
+        
+        container.innerHTML = '<p style="text-align: center; padding: 40px;">Carregando...</p>';
+        
+        fetch(`/api/vitrine?tipo=${tipo}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.resultados) {
+                    container.innerHTML = '';
+                    
+                    if (data.resultados.length === 0) {
+                        container.innerHTML = '<div style="min-height: 400px; display: flex; align-items: center; justify-content: center;"><p style="text-align: center; padding: 40px; color: #777; font-size: 1.1rem;">Nenhum resultado encontrado.</p></div>';
+                        countEl.textContent = '0 resultados encontrados';
+                        return;
+                    }
+                    
+                    countEl.textContent = `${data.resultados.length} ${tipo === 'profissional' ? 'Profissionais' : 'Clínicas'} encontrados`;
+                    
+                    data.resultados.forEach(item => {
+                        // Debug: verificar se o id está presente
+                        if (!item.id) {
+                            console.error('Item sem ID:', item);
+                            return;
+                        }
+                        const card = criarCard(item);
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = '<p style="text-align: center; padding: 40px; color: #ff4b4b;">Erro ao carregar resultados.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                container.innerHTML = '<p style="text-align: center; padding: 40px; color: #ff4b4b;">Erro ao conectar com o servidor.</p>';
+            });
+    }
+    
+    function criarCard(item) {
+        const card = document.createElement('div');
+        card.className = 'card-item';
+        
+        const fotoUrl = item.foto ? `static/uploads/${item.foto}` : null;
+        const iconClass = item.tipo === 'profissional' ? 'fa-user-doctor' : 'fa-hospital';
+        const badgeClass = item.tipo === 'profissional' ? 'badge-pro' : 'badge-clinic';
+        const badgeText = item.tipo === 'profissional' ? 'Profissional' : 'Clínica';
+        const linkUrl = item.tipo === 'profissional' 
+            ? `/profissional/perfil/${item.id}` 
+            : `/clinica/perfil/${item.id}`;
+        const linkText = item.tipo === 'profissional' ? 'Ver Perfil' : 'Ver Clínica';
+        
+        const precoHtml = item.preco 
+            ? `<div class="price-tag">
+                <span>${item.tipo === 'profissional' ? 'Consulta' : 'A partir de'}</span>
+                <strong>R$ ${item.preco.toFixed(2).replace('.', ',')}</strong>
+               </div>`
+            : '<div class="price-tag"><span>Consulte valores</span></div>';
+        
+        const conveniosHtml = item.convenios && item.convenios.length > 0
+            ? `<div class="card-tags">
+                ${item.convenios.slice(0, 3).map(c => `<span class="tag">${c}</span>`).join('')}
+               </div>`
+            : '';
+        
+        card.innerHTML = `
+            <div class="card-logo ${item.tipo === 'clinica' ? 'logo-clinic' : ''}">
+                ${fotoUrl 
+                    ? `<img src="${fotoUrl}" alt="${item.nome}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
+                    : `<i class="fa-solid ${iconClass}"></i>`
+                }
+            </div>
+            <div class="card-info">
+                <div class="card-header-info">
+                    <h4>${item.nome}</h4>
+                    <span class="badge ${badgeClass}">${badgeText}</span>
+                </div>
+                ${item.especialidade ? `<p class="specialty">${item.especialidade}</p>` : ''}
+                <div class="card-bottom-info">
+                    ${conveniosHtml}
+                    <div class="location-info">
+                        <i class="fa-solid fa-map-pin"></i> ${item.localizacao || 'Localização não informada'}
+                    </div>
+                </div>
+            </div>
+            <div class="card-action">
+                ${precoHtml}
+                <a href="${linkUrl}" class="btn-view">${linkText} <i class="fa-solid fa-arrow-right"></i></a>
+                <span class="last-seen">Disponível</span>
+            </div>
+        `;
+        
+        return card;
+    }
+    
+    // Carregar cards iniciais
+    carregarCards('profissional');
+    
+    // Filtrar por tipo
     const typeRadios = document.querySelectorAll('input[name="type"]');
-
     typeRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
-            console.log(`Filtro alterado para: ${e.target.id === 'type-pro' ? 'Profissional' : 'Clínica'}`);
-            // Exemplo: Filtrar visualmente (apenas demo)
-            // Se fosse real, chamaria uma API ou filtraria a lista
+            const tipo = e.target.id === 'type-pro' ? 'profissional' : 'clinica';
+            carregarCards(tipo);
         });
     });
 
@@ -116,72 +207,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-/* --- JS DO HEADER (Compatível com estrutura original) --- */
-function iniciarHeader() {
-  // Captura o header para delegação de eventos
-  const header = document.querySelector('.header');
-
-  if (header) {
-    header.addEventListener('click', (e) => {
-      
-      // 1. Clicou no botão LOGIN -> Vira FOTO
-      if (e.target.classList.contains('btn-login')) {
-        e.preventDefault();
-        const btn = e.target;
-        
-        // Cria o elemento da foto (wrapper)
-        const profilePic = document.createElement('div');
-        profilePic.className = 'profile-pic';
-        profilePic.innerHTML = `
-          <img src="img/do-utilizador.png" alt="Perfil" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
-          <div class="dropdown-menu">
-            <a href="#" class="dropdown-item">Meu Perfil</a>
-            <div class="dropdown-divider"></div>
-            <a href="#" class="dropdown-item">Sair</a>
-          </div>
-        `;
-        
-        // Substitui o botão pela foto dentro do header
-        btn.parentNode.replaceChild(profilePic, btn);
-      }
-      
-      // 2. Clicou na FOTO -> Abre Dropdown
-      else if (e.target.closest('.profile-pic')) {
-        const pic = e.target.closest('.profile-pic');
-        const menu = pic.querySelector('.dropdown-menu');
-        if (menu) {
-          // Fecha outros se tiver
-          document.querySelectorAll('.dropdown-menu.show').forEach(m => {
-            if (m !== menu) m.classList.remove('show');
-          });
-          menu.classList.toggle('show');
-          e.stopPropagation(); 
-        }
-      }
-
-      // 3. Clicou em SAIR -> Volta a ser BOTÃO
-      else if (e.target.classList.contains('dropdown-item') && e.target.textContent.trim() === 'Sair') {
-        e.preventDefault();
-        const pic = e.target.closest('.profile-pic');
-        if (pic) {
-          const btn = document.createElement('button');
-          btn.className = 'btn-login';
-          btn.textContent = 'Login';
-          pic.parentNode.replaceChild(btn, pic);
-        }
-      }
-    });
-  }
-
-  // Fecha dropdown ao clicar fora
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.profile-pic')) {
-      document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-        menu.classList.remove('show');
-      });
-    }
-  });
-}
-
-// Inicializa
-document.addEventListener('DOMContentLoaded', iniciarHeader);
+// Header dropdown já é gerenciado pelo header.js global, não precisa duplicar aqui

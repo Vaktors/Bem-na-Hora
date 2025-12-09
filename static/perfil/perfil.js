@@ -305,14 +305,29 @@ btnConfirmSave.addEventListener('click', () => {
         cancelBtn = document.querySelector(`#header-address .btn-cancel-card`);
     }
 
-    // Processa o salvamento
+    // Preparar dados para enviar ao servidor
+    const dadosAtualizacao = {};
+    
     inputs.forEach(input => {
+        const valor = input.value.trim();
+        const id = input.id;
+        
         // REGRA IMPORTANTE: Se o usuário deixou em branco, restaura o original
-        if (input.value.trim() === '') {
-            input.value = input.dataset.original;
+        if (valor === '') {
+            input.value = input.dataset.original || '';
         } else {
             // Se digitou algo, atualiza o "original" para o novo valor
-            input.dataset.original = input.value;
+            input.dataset.original = valor;
+            
+            // Mapear IDs dos inputs para campos do banco
+            if (id === 'input-cpf') dadosAtualizacao['cpf'] = valor;
+            else if (id === 'input-nascimento') dadosAtualizacao['data_nasc'] = valor;
+            else if (id === 'input-telefone') dadosAtualizacao['telefone'] = valor;
+            else if (id === 'input-rua') dadosAtualizacao['rua'] = valor;
+            else if (id === 'input-bairro') dadosAtualizacao['bairro'] = valor;
+            else if (id === 'input-cidade') dadosAtualizacao['cidade'] = valor;
+            else if (id === 'input-uf') dadosAtualizacao['estado'] = valor;
+            else if (id === 'input-cep') dadosAtualizacao['cep'] = valor;
         }
         
         input.placeholder = ''; // Limpa placeholder
@@ -321,13 +336,49 @@ btnConfirmSave.addEventListener('click', () => {
         input.style.backgroundColor = '';
     });
 
+    // Enviar dados para o servidor
+    if (Object.keys(dadosAtualizacao).length > 0) {
+        fetch('/api/perfil/atualizar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dadosAtualizacao)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Sucesso!', 'Informações atualizadas no banco de dados.', 'success');
+            } else {
+                showToast('Erro', data.message || 'Erro ao atualizar perfil.', 'error');
+                // Reverter alterações em caso de erro
+                inputs.forEach(input => {
+                    if (input.dataset.original) {
+                        input.value = input.dataset.original;
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao atualizar perfil:', error);
+            showToast('Erro', 'Erro ao conectar com o servidor.', 'error');
+            // Reverter alterações em caso de erro
+            inputs.forEach(input => {
+                if (input.dataset.original) {
+                    input.value = input.dataset.original;
+                }
+            });
+        });
+    } else {
+        showToast('Aviso', 'Nenhuma alteração detectada.', 'warning');
+    }
+
     icon.classList.remove('fa-save');
     icon.classList.add('fa-pen');
     if (textSpan) textSpan.textContent = "Alterar";
     
     if (cancelBtn) cancelBtn.classList.add('hidden');
 
-    showToast('Sucesso!', 'Informações atualizadas.', 'success');
     confirmModal.classList.remove('show');
     
     pendingSectionId = null;
@@ -347,17 +398,53 @@ function toggleAccordion(wrapperId, headerId) {
     const wrapper = document.getElementById(wrapperId);
     const header = document.getElementById(headerId);
     
+    if (!wrapper || !header) {
+        console.warn('Elementos do accordion não encontrados:', wrapperId, headerId);
+        return;
+    }
+    
     const isEditing = header.querySelector('.fa-save'); 
+    
+    // Se estiver editando e tentando fechar, cancela a edição automaticamente
+    if(isEditing && wrapper.classList.contains('open')) {
+        // Encontrar qual seção está sendo editada
+        if (wrapperId === 'wrapper-address') {
+            cancelEdit('address-section');
+        }
+        // Não fecha ainda, o cancelEdit já faz isso
+        return;
+    }
+    
     if(isEditing) return; // Não fecha se estiver editando
 
     const isAlreadyOpen = wrapper.classList.contains('open');
 
-    document.querySelectorAll('.accordion-wrapper').forEach(el => el.classList.remove('open'));
-    document.querySelectorAll('.accordion-header').forEach(el => el.classList.remove('active'));
+    // Fecha todos os outros accordions e cancela edições
+    document.querySelectorAll('.accordion-wrapper').forEach(el => {
+        if (el !== wrapper && el.classList.contains('open')) {
+            // Verificar se está sendo editado antes de fechar
+            const otherHeader = document.querySelector(`[onclick*="${el.id}"]`);
+            if (otherHeader && otherHeader.querySelector('.fa-save')) {
+                if (el.id === 'wrapper-address') {
+                    cancelEdit('address-section');
+                }
+            }
+            el.classList.remove('open');
+        }
+    });
+    document.querySelectorAll('.accordion-header').forEach(el => {
+        if (el !== header) {
+            el.classList.remove('active');
+        }
+    });
 
+    // Toggle do accordion atual
     if (!isAlreadyOpen) {
         wrapper.classList.add('open');
         header.classList.add('active');
+    } else {
+        wrapper.classList.remove('open');
+        header.classList.remove('active');
     }
 }
 
@@ -367,14 +454,60 @@ const imgProfile = document.getElementById("ftPerfil");
 if (inputPhoto) {
     inputPhoto.addEventListener("change", function () {
         const file = this.files[0];
-        if (file) {
+        if (!file) return;
+        
+        // Validar tipo de arquivo
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            showToast('Erro', 'Tipo de arquivo não permitido. Use: PNG, JPG, JPEG, GIF ou WEBP', 'error');
+            this.value = ''; // Limpar input
+            return;
+        }
+        
+        // Validar tamanho (máximo 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Erro', 'Arquivo muito grande. Máximo: 5MB', 'error');
+            this.value = ''; // Limpar input
+            return;
+        }
+        
+        // Mostrar preview imediatamente
             const reader = new FileReader();
             reader.onload = function () { 
                 imgProfile.src = reader.result; 
-                showToast('Foto', 'Imagem atualizada.', 'success');
             };
             reader.readAsDataURL(file);
-        }
+        
+        // Enviar para o servidor
+        const formData = new FormData();
+        formData.append('foto', file);
+        
+        showToast('Aguarde', 'Enviando foto...', 'warning');
+        
+        fetch('/api/perfil/upload-foto', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Atualizar a imagem com a URL do servidor
+                if (data.foto_url) {
+                    imgProfile.src = data.foto_url;
+                }
+                showToast('Sucesso!', 'Foto de perfil atualizada e salva no banco de dados.', 'success');
+            } else {
+                showToast('Erro', data.message || 'Erro ao fazer upload da foto', 'error');
+                // Restaurar imagem padrão em caso de erro
+                imgProfile.src = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao fazer upload:', error);
+            showToast('Erro', 'Erro ao conectar com o servidor', 'error');
+            // Restaurar imagem padrão em caso de erro
+            imgProfile.src = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+        });
     });
 }
 
@@ -415,72 +548,85 @@ function showToast(title, message, type = 'success') {
     }, 4000);
 }
 
-/* --- JS DO HEADER (Compatível com estrutura original) --- */
-function iniciarHeader() {
-  // Captura o header para delegação de eventos
-  const header = document.querySelector('.header');
+// Header dropdown já é gerenciado pelo header.js global, não precisa duplicar aqui
 
-  if (header) {
-    header.addEventListener('click', (e) => {
-      
-      // 1. Clicou no botão LOGIN -> Vira FOTO
-      if (e.target.classList.contains('btn-login')) {
-        e.preventDefault();
-        const btn = e.target;
-        
-        // Cria o elemento da foto (wrapper)
-        const profilePic = document.createElement('div');
-        profilePic.className = 'profile-pic';
-        profilePic.innerHTML = `
-          <img src="img/do-utilizador.png" alt="Perfil" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
-          <div class="dropdown-menu">
-            <a href="#" class="dropdown-item">Meu Perfil</a>
-            <div class="dropdown-divider"></div>
-            <a href="#" class="dropdown-item">Sair</a>
-          </div>
-        `;
-        
-        // Substitui o botão pela foto dentro do header
-        btn.parentNode.replaceChild(profilePic, btn);
-      }
-      
-      // 2. Clicou na FOTO -> Abre Dropdown
-      else if (e.target.closest('.profile-pic')) {
-        const pic = e.target.closest('.profile-pic');
-        const menu = pic.querySelector('.dropdown-menu');
-        if (menu) {
-          // Fecha outros se tiver
-          document.querySelectorAll('.dropdown-menu.show').forEach(m => {
-            if (m !== menu) m.classList.remove('show');
-          });
-          menu.classList.toggle('show');
-          e.stopPropagation(); 
-        }
-      }
+/* =========================================================
+   CARREGAR HISTÓRICO MÉDICO
+   ========================================================= */
+function carregarHistoricoMedico() {
+    fetch('/api/perfil/agendamentos')
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById('history-table');
+            const tbody = document.getElementById('history-tbody');
+            const empty = document.getElementById('history-empty');
+            
+            if (!table || !tbody || !empty) return;
+            
+            if (data.success && data.agendamentos && data.agendamentos.length > 0) {
+                // Limpar tbody
+                tbody.innerHTML = '';
+                
+                // Adicionar agendamentos
+                data.agendamentos.forEach(ag => {
+                    const tr = document.createElement('tr');
+                    
+                    // Mapear status para classes CSS
+                    let statusClass = 'confirm';
+                    let statusText = ag.status || 'Agendado';
+                    if (statusText === 'Concluido' || statusText === 'Concluído') {
+                        statusText = 'Concluído';
+                    } else if (statusText === 'Cancelado') {
+                        statusClass = 'cancel';
+                    } else if (statusText === 'Faltou') {
+                        statusClass = 'cancel';
+                    }
+                    
+                    tr.innerHTML = `
+                        <td>${ag.data}</td>
+                        <td>${ag.medico_clinica}</td>
+                        <td>${ag.tipo}</td>
+                        <td><span class="status ${statusClass}">${statusText}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                table.style.display = 'table';
+                empty.style.display = 'none';
+            } else {
+                table.style.display = 'none';
+                empty.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar histórico:', error);
+            const table = document.getElementById('history-table');
+            const empty = document.getElementById('history-empty');
+            if (table) table.style.display = 'none';
+            if (empty) empty.style.display = 'block';
+        });
+}
 
-      // 3. Clicou em SAIR -> Volta a ser BOTÃO
-      else if (e.target.classList.contains('dropdown-item') && e.target.textContent.trim() === 'Sair') {
-        e.preventDefault();
-        const pic = e.target.closest('.profile-pic');
-        if (pic) {
-          const btn = document.createElement('button');
-          btn.className = 'btn-login';
-          btn.textContent = 'Login';
-          pic.parentNode.replaceChild(btn, pic);
+// Carregar histórico quando o accordion abrir
+document.addEventListener('DOMContentLoaded', () => {
+    const historyHeader = document.getElementById('header-history');
+    const historyWrapper = document.getElementById('wrapper-history');
+    
+    if (historyHeader && historyWrapper) {
+        // Observar quando o accordion abre
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    if (historyWrapper.classList.contains('open')) {
+                        carregarHistoricoMedico();
         }
       }
     });
-  }
-
-  // Fecha dropdown ao clicar fora
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.profile-pic')) {
-      document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-        menu.classList.remove('show');
+        });
+        
+        observer.observe(historyWrapper, {
+            attributes: true,
+            attributeFilter: ['class']
       });
     }
   });
-}
-
-// Inicializa
-document.addEventListener('DOMContentLoaded', iniciarHeader);
