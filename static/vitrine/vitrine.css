@@ -427,6 +427,15 @@ select {
     /* Garante altura mínima mesmo sem cards para manter layout */
 }
 
+#cards-container {
+    min-height: 400px;
+    /* Mantém altura consistente durante carregamento para evitar flicker */
+    width: 700px;
+    /* Largura fixa para manter posição consistente independente de cards */
+    position: relative;
+    /* Para o placeholder ocupar espaço relativo ao container */
+}
+
 .results-header {
     display: flex;
     justify-content: space-between;
@@ -465,6 +474,7 @@ select {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     border: 1px solid transparent;
     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    animation: cardFadeIn 0.6s ease-out forwards;
 }
 
 .card-item:hover {
@@ -605,6 +615,22 @@ select {
 .last-seen {
     font-size: 0.75rem;
     color: #aaa;
+}
+
+/* ---------- ANIMAÇÃO DOS CARDS ---------- */
+.card-item.animate {
+    animation: cardFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* ---------- SELECT CUSTOMIZADO ---------- */

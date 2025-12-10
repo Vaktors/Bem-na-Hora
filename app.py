@@ -4,7 +4,6 @@ import os
 from routes import *
 from routes import register_routes
 
-
 app = Flask(__name__)
 
 # --- CONFIG BASE ---

@@ -54,14 +54,14 @@
             <div class="main-search-bar">
                 <div class="search-input-group">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Ex: Cardiologista, Clínica Geral...">
+                    <input type="text" id="search-input" placeholder="Ex: Cardiologista, Clínica Geral...">
                 </div>
                 <div class="divider"></div>
                 <div class="search-input-group">
                     <i class="fa-solid fa-location-dot"></i>
-                    <input type="text" placeholder="Localização (Cidade ou Bairro)">
+                    <input type="text" id="location-input" placeholder="Localização (Cidade ou Bairro)">
                 </div>
-                <button class="btn-search">Pesquisar</button>
+                <button class="btn-search" id="btn-pesquisar">Pesquisar</button>
             </div>
         </div>
     </section>
@@ -93,18 +93,18 @@
                             <span class="selected-option">Todas as especialidades</span>
                             <ul class="custom-options">
                                 <li data-value="">Todas as especialidades</li>
-                                <li data-value="cardio">Cardiologia</li>
-                                <li data-value="dermato">Dermatologia</li>
-                                <li data-value="orto">Ortopedia</li>
-                                <li data-value="psico">Psicologia</li>
+                                <li data-value="Cardiologia">Cardiologia</li>
+                                <li data-value="Dermatologia">Dermatologia</li>
+                                <li data-value="Ortopedia">Ortopedia</li>
+                                <li data-value="Psicologia">Psicologia</li>
                             </ul>
                         </div>
-                        <select name="especialidade" style="display:none;">
+                        <select name="especialidade" id="especialidade-select" style="display:none;">
                             <option value="">Todas as especialidades</option>
-                            <option value="cardio">Cardiologia</option>
-                            <option value="dermato">Dermatologia</option>
-                            <option value="orto">Ortopedia</option>
-                            <option value="psico">Psicologia</option>
+                            <option value="Cardiologia">Cardiologia</option>
+                            <option value="Dermatologia">Dermatologia</option>
+                            <option value="Ortopedia">Ortopedia</option>
+                            <option value="Psicologia">Psicologia</option>
                         </select>
                     </div>
                 </div>
@@ -112,19 +112,19 @@
                 <div class="filter-group">
                     <label class="filter-label">Modalidade</label>
                     <label class="custom-checkbox">
-                        <input type="checkbox" checked>
+                        <input type="checkbox" name="modalidade" value="Presencial" checked>
                         <span class="checkmark"></span>
                         Presencial
                         <span class="count">120</span>
                     </label>
                     <label class="custom-checkbox">
-                        <input type="checkbox">
+                        <input type="checkbox" name="modalidade" value="Telemedicina">
                         <span class="checkmark"></span>
                         Telemedicina
                         <span class="count">45</span>
                     </label>
                     <label class="custom-checkbox">
-                        <input type="checkbox">
+                        <input type="checkbox" name="modalidade" value="Domiciliar">
                         <span class="checkmark"></span>
                         Domiciliar
                         <span class="count">12</span>
@@ -191,7 +191,7 @@
                                 <li data-value="avaliacao">Melhor Avaliação</li>
                             </ul>
                         </div>
-                        <select name="ordenar" style="display:none;">
+                        <select name="ordenar" id="ordenar-select" style="display:none;">
                             <option value="relevancia">Relevância</option>
                             <option value="preco_menor">Menor Preço</option>
                             <option value="avaliacao">Melhor Avaliação</option>

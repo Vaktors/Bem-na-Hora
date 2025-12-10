@@ -102,7 +102,7 @@ function updateStarRating(rating) {
     const stars = document.querySelectorAll('#starRating i');
     stars.forEach((star, index) => {
         if (index < rating) {
-            star.className = 'fa-solid fa-star';
+            star.className = 'fa-solid fa-star active';
         } else {
             star.className = 'fa-regular fa-star';
         }
@@ -150,32 +150,9 @@ function enviarAvaliacao(tipo, idEntidade) {
 
 // --- LÓGICA DE INTERFACE E MAPA ---
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // --- DROPDOWN (Mantido Original) ---
-    document.addEventListener('click', (e) => {
-        const target = e.target;
-
-        // 1. CLIQUE NA FOTO -> Abre/Fecha Menu
-        const profileWrapper = target.closest('.profile-pic');
-        if (profileWrapper) {
-            const menu = profileWrapper.querySelector('.dropdown-menu');
-            if (menu) {
-                menu.classList.toggle('show');
-                e.stopPropagation();
-            }
-            return;
-        }
-
-        // 2. CLIQUE FORA -> Fecha qualquer menu aberto
-        document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-            menu.classList.remove('show');
-        });
-    });
-
-    // Fechar com tecla ESC
+    // Fechar modal com ESC
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
             fecharModalAvaliacao();
         }
     });

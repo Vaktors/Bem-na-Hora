@@ -319,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
             endereco: document.getElementById('endereco').value,
             bairro: document.getElementById('bairro').value,
             cidade: document.getElementById('cidade').value,
+            estado: document.getElementById('estado').value,
             telefone: document.getElementById('telefone').value,
             horarioSemana: document.getElementById('horario-semana').value,
             horarioFimSemana: document.getElementById('horario-fim-semana').value,

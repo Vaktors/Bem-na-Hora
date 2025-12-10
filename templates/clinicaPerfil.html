@@ -92,8 +92,7 @@
                         </div>
 
                         <div class="action-buttons">
-                            <button class="btn-primary"><i class="fa-brands fa-whatsapp"></i> Agendar</button>
-                            <button class="btn-secondary"><i class="fa-solid fa-phone"></i> Ligar</button>
+                            <button class="btn-secondary"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
                         </div>
                     </div>
 
@@ -185,33 +184,33 @@
                          <p style="text-align: center; color: #777; padding: 40px;">Equipe médica não cadastrada.</p>
                      {% endif %}
                  </div>
-             </div>
 
+                 <div class="action-buttons">
+                     <button class="btn-secondary"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
+                 </div>
+             </div>
             <!-- Aba Serviços -->
             <div id="servicos" class="tab-pane">
                 <h2 class="section-title">Exames Disponíveis</h2>
                 <div class="services-list">
-                    <div class="service-item">
-                        <div class="service-info">
-                            <h4>Ultrassonografia Geral</h4>
-                            <p>Abdome total, pélvica, tireoide e obstétrica.</p>
+                    {% if clinica.procedimentos_list %}
+                        {% for servico in clinica.procedimentos_list %}
+                        <div class="service-item">
+                            <div class="service-info">
+                                <h4>{{ servico.nome }}</h4>
+                                <p>Procedimento médico disponível na clínica.</p>
+                            </div>
+                            <div class="service-right">
+                                <div class="service-price"><span>{{ servico.preco }}</span></div>
+                                <div class="service-action">
+                                    <button class="btn-agendar"><i class="fa-solid fa-calendar-plus"></i> Agendar</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="service-price"><span>A partir de R$ 120,00</span></div>
-                    </div>
-                    <div class="service-item">
-                        <div class="service-info">
-                            <h4>Raio-X Digital</h4>
-                            <p>Tórax, face, coluna e extremidades. Sem agendamento.</p>
-                        </div>
-                        <div class="service-price"><span>R$ 80,00</span></div>
-                    </div>
-                    <div class="service-item">
-                        <div class="service-info">
-                            <h4>Exames Laboratoriais</h4>
-                            <p>Hemograma, colesterol, glicemia e check-up completo.</p>
-                        </div>
-                        <div class="service-price"><span>Sob Consulta</span></div>
-                    </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="text-align: center; color: #777; padding: 40px;">Nenhum procedimento cadastrado.</p>
+                    {% endif %}
                 </div>
             </div>
 
@@ -340,7 +339,7 @@
                         <small id="charCount">0/500 caracteres</small>
                     </div>
                     <div class="modal-actions">
-                        <button type="button" class="btn-outline" onclick="fecharModalAvaliacao()">Cancelar</button>
+                        <button type="button" class="btn-cancel" onclick="fecharModalAvaliacao()">Cancelar</button>
                         <button type="submit" class="btn-primary" id="btnSubmitAvaliacao">Enviar Avaliação</button>
                     </div>
                 </form>

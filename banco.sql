@@ -15,6 +15,13 @@ CREATE TABLE convenios (
     nome VARCHAR(100) NOT NULL UNIQUE
 );
 
+-- Lista de Modalidades de Atendimento (Presencial, Telemedicina, Domiciliar)
+CREATE TABLE modalidades (
+    idModalidade INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(50) NOT NULL UNIQUE,
+    icone VARCHAR(50) DEFAULT 'fa-hospital-user'
+);
+
 -- Lista de Infraestrutura (Wi-fi, Estacionamento) - Uso principal em Clínicas
 CREATE TABLE comodidades (
     idComodidade INT PRIMARY KEY AUTO_INCREMENT,
@@ -92,7 +99,8 @@ CREATE TABLE clinica (
     endereco VARCHAR(200),
     bairro VARCHAR(100),
     cidade VARCHAR(100),
-    telefone VARCHAR(20),                 
+    estado CHAR(2),
+    telefone VARCHAR(20),
     
     -- Horários
     horario_semana VARCHAR(100),
@@ -143,10 +151,19 @@ CREATE TABLE clinica_convenios (
 CREATE TABLE clinica_comodidades (
     idClinica INT,
     idComodidade INT,
-    
+
     PRIMARY KEY (idClinica, idComodidade),
     FOREIGN KEY (idClinica) REFERENCES clinica(idClinica) ON DELETE CASCADE,
     FOREIGN KEY (idComodidade) REFERENCES comodidades(idComodidade)
+);
+
+CREATE TABLE clinica_modalidades (
+    idClinica INT,
+    idModalidade INT,
+
+    PRIMARY KEY (idClinica, idModalidade),
+    FOREIGN KEY (idClinica) REFERENCES clinica(idClinica) ON DELETE CASCADE,
+    FOREIGN KEY (idModalidade) REFERENCES modalidades(idModalidade)
 );
 
 -- ==========================================================
@@ -303,6 +320,10 @@ INSERT INTO especialidades (nome) VALUES
 INSERT INTO convenios (nome) VALUES 
 ('Particular'), ('Unimed'), ('Amil'), ('Bradesco Saúde'), ('SulAmérica');
 
+-- Popular Modalidades
+INSERT INTO modalidades (nome, icone) VALUES
+('Presencial', 'fa-hospital-user'), ('Telemedicina', 'fa-video'), ('Domiciliar', 'fa-house-medical');
+
 -- Popular Comodidades
-INSERT INTO comodidades (nome, icone) VALUES 
+INSERT INTO comodidades (nome, icone) VALUES
 ('Wi-Fi', 'fa-wifi'), ('Estacionamento', 'fa-parking'), ('Acessibilidade', 'fa-wheelchair');

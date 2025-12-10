@@ -10,9 +10,7 @@ from werkzeug.utils import secure_filename
 import random
 import re
 import os
-
 import mysql.connector
-
 def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
@@ -21,27 +19,20 @@ def get_db_connection():
         database="BemNaHora",
         port=3307
     )
-
 from utils import (
     gerar_codigo, limpar_cpf, limpar_cnpj, converter_data, formatar_data,
     formatar_cpf, allowed_file, MAPEAMENTO_CONVENIOS
 )
-
-
-
 def register_routes(app, mail):
     # ----------------------------- --
     # ROTAS PRINCIPAIS
     # -------------------------------
-
     @app.route('/')
     def index():
         return render_template('index.html')
-
     @app.route('/vitrine')
     def vitrine():
         return render_template('vitrine.html')
-
     @app.route('/agenda')
     def agenda():
         # Redirecionar baseado no tipo de usuário
@@ -65,60 +56,47 @@ def register_routes(app, mail):
         if 'clinica_id' not in session:
             return redirect(url_for('cadastro_usuario'))
         return render_template('agenda.html')  # Mesmo template, mas com dados da clínica
-
     # -------------------------------
     # ROTAS DE CADASTRO / LOGIN
     # -------------------------------
-
     @app.route('/cadastro/usuario')
     def cadastro_usuario():
         return render_template('cadastro.html')
-
     @app.route('/cadastro/parceiro')
     def cadastro_parceiro():
         return render_template('medico.html')
-
     @app.route('/recuperar-senha')
     def redefinir_senha():
         return render_template('redefinirSenha.html')
-
     @app.route('/confirma-email')
     def confirma_email():
         if 'dados_cadastro' not in session:
             return redirect(url_for('cadastro_usuario'))
-
         email = session.get('dados_cadastro', {}).get('email', 'email@exemplo.com')
         return render_template('confirmaEmail.html', email=email)
-
     # -------------------------------
     # FUNÇÃO: Buscar usuário logado
     # -------------------------------
     def get_usuario_logado():
         if 'user_id' not in session:
             return None
-
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-
             cursor.execute("""
                 SELECT u.*, c.nome as convenio_nome
                 FROM usuario u
                 LEFT JOIN convenios c ON u.idConvenio = c.idConvenio
                 WHERE u.idUsuario = %s
             """, (session['user_id'],))
-
             usuario = cursor.fetchone()
             cursor.close()
             conn.close()
-
             if usuario:
                 if usuario.get('dataNasc'):
                     usuario['dataNasc_formatada'] = formatar_data(usuario['dataNasc'])
-
                 if usuario.get('cpf'):
                     usuario['cpf_formatado'] = formatar_cpf(usuario['cpf'])
-
                 # Formatar telefone
                 tel = usuario.get('telefone')
                 if tel and len(tel) in [10, 11]:
@@ -128,21 +106,17 @@ def register_routes(app, mail):
                         usuario['telefone_formatado'] = f"({tel[:2]}) {tel[2:6]}-{tel[6:]}"
                 else:
                     usuario['telefone_formatado'] = tel
-
             return usuario
         except Exception as e:
             print("Erro ao buscar usuário:", e)
             return None
-
     # -------------------------------
     # API: Cadastro
     # -------------------------------
-
     @app.route('/api/cadastro', methods=['POST'])
     def api_cadastro():
         try:
             dados = request.get_json()
-
             nome = dados.get('nome', '').strip()
             email = dados.get('email', '').strip().lower()
             cpf = limpar_cpf(dados.get('cpf', ''))
@@ -151,43 +125,32 @@ def register_routes(app, mail):
             telefone = dados.get('telefone', '').strip()
             senha = dados.get('senha', '')
             convenio = dados.get('convenio', '')
-
             if not all([nome, email, cpf, genero, data_nasc, telefone, senha]):
                 return jsonify({'success': False, 'message': 'Preencha todos os campos obrigatórios'}), 400
-
             if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
                 return jsonify({'success': False, 'message': 'Email inválido'}), 400
-
             if len(cpf) != 11:
                 return jsonify({'success': False, 'message': 'CPF inválido'}), 400
-
             if genero not in ['M', 'F', 'O']:
                 return jsonify({'success': False, 'message': 'Gênero inválido'}), 400
-
             data_nasc_formatada = converter_data(data_nasc)
             if not data_nasc_formatada:
                 return jsonify({'success': False, 'message': 'Data inválida'}), 400
-
             conn = get_db_connection()
             cursor = conn.cursor()
-
             cursor.execute("SELECT idUsuario FROM usuario WHERE email = %s", (email,))
             if cursor.fetchone():
                 cursor.close()
                 conn.close()
                 return jsonify({'success': False, 'message': 'Email já cadastrado'}), 400
-
             cursor.execute("SELECT idUsuario FROM usuario WHERE cpf = %s", (cpf,))
             if cursor.fetchone():
                 cursor.close()
                 conn.close()
                 return jsonify({'success': False, 'message': 'CPF já cadastrado'}), 400
-
             cursor.close()
             conn.close()
-
             codigo = gerar_codigo()
-
             session['dados_cadastro'] = {
                 'nome': nome,
                 'email': email,
@@ -200,7 +163,6 @@ def register_routes(app, mail):
                 'codigo': codigo,
                 'data_expiracao': (datetime.now() + timedelta(minutes=10)).isoformat()
             }
-
             try:
                 msg = Message(
                     subject="Confirmação de Email - Bem Na Hora",
@@ -216,7 +178,6 @@ def register_routes(app, mail):
             except Exception as e:
                 print("Erro ao enviar email:", e)
                 return jsonify({'success': False, 'message': 'Erro ao enviar email'}), 500
-
             return jsonify({
                 'success': True,
                 'message': 'Código enviado!',
@@ -225,29 +186,22 @@ def register_routes(app, mail):
         except Exception as e:
             print("Erro no cadastro:", e)
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Confirmar Email
     # -------------------------------
-
     @app.route('/api/confirmar-email', methods=['POST'])
     def api_confirmar_email():
         try:
             dados = request.get_json()
             codigo_digitado = dados.get('codigo', '').strip()
-
             if 'dados_cadastro' not in session:
                 return jsonify({'success': False, 'message': 'Sessão expirada'}), 400
-
             dados_cadastro = session['dados_cadastro']
-
             if codigo_digitado != dados_cadastro['codigo']:
                 return jsonify({'success': False, 'message': 'Código incorreto'}), 400
-
             if datetime.now() > datetime.fromisoformat(dados_cadastro['data_expiracao']):
                 session.pop('dados_cadastro', None)
                 return jsonify({'success': False, 'message': 'Código expirado'}), 400
-
             # Convênio
             id_convenio = None
             conv = dados_cadastro['convenio']
@@ -262,10 +216,8 @@ def register_routes(app, mail):
                         id_convenio = r[0]
                     cursor.close()
                     conn.close()
-
             conn = get_db_connection()
             cursor = conn.cursor()
-
             cursor.execute("""
                 INSERT INTO usuario (nome, email, cpf, genero, dataNasc, senha_hash, telefone, idConvenio)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
@@ -279,39 +231,31 @@ def register_routes(app, mail):
                 dados_cadastro['telefone'],
                 id_convenio
             ))
-
             conn.commit()
             user_id = cursor.lastrowid
             cursor.close()
             conn.close()
-
             session.pop('dados_cadastro', None)
             session['user_id'] = user_id
             session['user_email'] = dados_cadastro['email']
             session['user_nome'] = dados_cadastro['nome']
-
             return jsonify({'success': True, 'redirect': url_for('perfil_usuario')})
         except Exception as e:
             print("Erro confirmar email:", e)
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Login
     # -------------------------------
-
     @app.route('/api/login', methods=['POST'])
     def api_login():
         try:
             dados = request.get_json()
             email = dados.get('email', '').lower()
             senha = dados.get('senha', '')
-
             if not email or not senha:
                 return jsonify({'success': False, 'message': 'Preencha email e senha'}), 400
-
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-
             # Prioridade: profissional > clínica > usuário comum
             # Tentar login como profissional primeiro
             cursor.execute("SELECT * FROM profissional WHERE email = %s", (email,))
@@ -357,18 +301,15 @@ def register_routes(app, mail):
                 cursor.close()
                 conn.close()
                 return jsonify({'success': True, 'redirect': url_for('perfil_usuario')})
-
             cursor.close()
             conn.close()
             return jsonify({'success': False, 'message': 'Email ou senha incorretos'}), 401
         except Exception as e:
             print("Erro login:", e)
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Logout
     # -------------------------------
-
     @app.route('/api/logout', methods=['POST'])
     def api_logout():
         # Limpar todas as sessões possíveis
@@ -383,36 +324,28 @@ def register_routes(app, mail):
         session.pop('clinica_nome', None)
         session.clear()
         return jsonify({'success': True, 'redirect': url_for('index')})
-
     # -------------------------------
     # API: Atualizar Perfil
     # -------------------------------
-
     @app.route('/api/perfil/atualizar', methods=['POST'])
     def api_atualizar_perfil():
         try:
             if 'user_id' not in session:
                 return jsonify({'success': False, 'message': 'Não autenticado'}), 401
-
             dados = request.get_json()
             user_id = session['user_id']
-
             campos = {}
-
             if 'cpf' in dados:
                 cpf = limpar_cpf(dados['cpf'])
                 if len(cpf) == 11:
                     campos['cpf'] = cpf
-
             if 'data_nasc' in dados:
                 d = converter_data(dados['data_nasc'])
                 if d:
                     campos['dataNasc'] = d
-
             if 'telefone' in dados:
                 tel = re.sub(r'\D', '', dados['telefone'])
                 campos['telefone'] = tel
-
             # Endereço
             if 'rua' in dados: campos['rua'] = dados['rua'] or None
             if 'bairro' in dados: campos['bairro'] = dados['bairro'] or None
@@ -420,42 +353,31 @@ def register_routes(app, mail):
             if 'estado' in dados: campos['estado'] = dados['estado'][:2].upper() or None
             if 'cep' in dados:
                 campos['cep'] = re.sub(r'\D', '', dados['cep']) or None
-
             if not campos:
                 return jsonify({'success': False, 'message': 'Nada a atualizar'}), 400
-
             conn = get_db_connection()
             cursor = conn.cursor()
-
             sets = ", ".join(f"{k}=%s" for k in campos)
             valores = list(campos.values()) + [user_id]
-
             cursor.execute(f"UPDATE usuario SET {sets} WHERE idUsuario = %s", valores)
             conn.commit()
-
             cursor.close()
             conn.close()
-
             return jsonify({'success': True, 'message': 'Atualizado!'})
         except Exception as e:
             print("Erro atualizar:", e)
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Agendamentos do usuário
     # -------------------------------
-
     @app.route('/api/perfil/agendamentos', methods=['GET'])
     def api_agendamentos_usuario():
         try:
             if 'user_id' not in session:
                 return jsonify({'success': False, 'message': 'Não autenticado'}), 401
-
             user_id = session['user_id']
-
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-
             cursor.execute("""
                 SELECT 
                     a.*,
@@ -470,9 +392,7 @@ def register_routes(app, mail):
                 ORDER BY a.data_hora_inicio DESC
                 LIMIT 50
             """, (user_id,))
-
             ags = cursor.fetchall()
-
             lista = []
             for ag in ags:
                 data = ag['data_hora_inicio']
@@ -480,73 +400,118 @@ def register_routes(app, mail):
                     data = data.strftime('%d/%m/%Y')
                 else:
                     data = str(data)
-
                 lista.append({
                     'data': data,
                     'medico_clinica': ag['nome_profissional'],
                     'tipo': ag['tipo_servico'],
                     'status': ag['status']
                 })
-
             cursor.close()
             conn.close()
-
             return jsonify({'success': True, 'agendamentos': lista})
         except Exception as e:
             print("Erro agendamentos:", e)
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
 
+    from datetime import datetime, timedelta # Importe o timedelta
+
+    @app.route('/api/agendar-consulta', methods=['POST'])
+    def api_agendar_consulta():
+        try:
+            # 1. Verificação de Login
+            if 'user_id' not in session:
+                return jsonify({'success': False, 'message': 'Você precisa estar logado para agendar.'}), 401
+                
+            data = request.get_json()
+            user_id = session['user_id']
+            
+            # 2. Coletar dados
+            servico_id = data.get('servico_id')
+            data_agendamento = data.get('data')   
+            horario = data.get('horario')         
+            
+            # Validação simples
+            if not all([servico_id, data_agendamento, horario]):
+                return jsonify({'success': False, 'message': 'Dados incompletos.'}), 400
+
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            
+            # 3. Validar Serviço e Pegar ID do Profissional
+            # Importante: Confirme se a tabela servicos_profissional tem a coluna 'preco'
+            cursor.execute("SELECT idProfissional, nome FROM servicos_profissional WHERE idServico = %s", (servico_id,))
+            servico_db = cursor.fetchone()
+            
+            if not servico_db:
+                cursor.close()
+                conn.close()
+                return jsonify({'success': False, 'message': 'Serviço não encontrado.'}), 404
+                
+            id_profissional = servico_db['idProfissional']
+            
+            # 4. Calcular Datas (Inicio e Fim)
+            # Formato string para datetime
+            data_hora_inicio_str = f"{data_agendamento} {horario}:00"
+            dt_inicio = datetime.strptime(data_hora_inicio_str, '%Y-%m-%d %H:%M:%S')
+            
+            # Adiciona 30 minutos para criar a data fim (obrigatória no seu banco)
+            dt_fim = dt_inicio + timedelta(minutes=30)
+            
+            # 5. Inserir na tabela agendamento
+            # CORREÇÃO: Adicionado data_hora_fim e removido data_criacao (que não existe no seu SQL)
+            cursor.execute("""
+                INSERT INTO agendamento 
+                (idUsuario, idProfissional, idServico, data_hora_inicio, data_hora_fim, status)
+                VALUES (%s, %s, %s, %s, %s, 'Agendado')
+            """, (user_id, id_profissional, servico_id, dt_inicio, dt_fim))
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            return jsonify({'success': True, 'message': 'Consulta agendada com sucesso!'})
+
+        except Exception as e:
+            print(f"Erro ao agendar: {e}")
+            return jsonify({'success': False, 'message': 'Erro interno ao processar agendamento.'}), 500
     # -------------------------------
     # API: Upload Foto
     # -------------------------------
-
     @app.route('/api/perfil/upload-foto', methods=['POST'])
     def api_upload_foto():
         try:
             if 'user_id' not in session:
                 return jsonify({'success': False, 'message': 'Não autenticado'}), 401
-
             if 'foto' not in request.files:
                 return jsonify({'success': False, 'message': 'Nenhum arquivo enviado'}), 400
-
             file = request.files['foto']
             uid = session['user_id']
-
             if file.filename == '':
                 return jsonify({'success': False, 'message': 'Nenhum arquivo selecionado'}), 400
-
             if not allowed_file(file.filename):
                 return jsonify({
                     'success': False,
                     'message': 'Tipo inválido. Use PNG, JPG, JPEG, GIF, WEBP'
                 }), 400
-
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             ext = file.filename.rsplit('.', 1)[1].lower()
             nome_final = f"perfil_{uid}_{timestamp}.{ext}"
-
             path = os.path.join(app.config['UPLOAD_FOLDER'], nome_final)
             file.save(path)
-
             # Remover foto antiga
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-
             cursor.execute("SELECT foto_perfil FROM usuario WHERE idUsuario = %s", (uid,))
             r = cursor.fetchone()
-
             if r and r.get('foto_perfil'):
                 antigo = os.path.join(app.config['UPLOAD_FOLDER'], r['foto_perfil'])
                 if os.path.exists(antigo):
                     try: os.remove(antigo)
                     except: pass
-
             cursor.execute("UPDATE usuario SET foto_perfil=%s WHERE idUsuario=%s", (nome_final, uid))
             conn.commit()
-
             cursor.close()
             conn.close()
-
             return jsonify({
                 'success': True,
                 'foto_url': url_for('static', filename=f'uploads/{nome_final}')
@@ -554,11 +519,9 @@ def register_routes(app, mail):
         except Exception as e:
             print("Erro upload foto:", e)
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Cadastro Profissional
     # -------------------------------
-
     @app.route('/api/cadastro/profissional', methods=['POST'])
     def api_cadastro_profissional():
         try:
@@ -633,11 +596,9 @@ def register_routes(app, mail):
         except Exception as e:
             print(f"Erro no cadastro profissional: {e}")
             return jsonify({'success': False, 'message': 'Erro interno do servidor'}), 500
-
     # -------------------------------
     # API: Cadastro Clínica
     # -------------------------------
-
     @app.route('/api/cadastro/clinica', methods=['POST'])
     def api_cadastro_clinica():
         try:
@@ -712,11 +673,9 @@ def register_routes(app, mail):
         except Exception as e:
             print(f"Erro no cadastro clínica: {e}")
             return jsonify({'success': False, 'message': 'Erro interno do servidor'}), 500
-
     # -------------------------------
     # API: Upload Foto Profissional
     # -------------------------------
-
     @app.route('/api/profissional/upload-foto', methods=['POST'])
     def api_upload_foto_profissional():
         try:
@@ -768,11 +727,9 @@ def register_routes(app, mail):
         except Exception as e:
             print(f"Erro upload foto profissional: {e}")
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Upload Foto Clínica
     # -------------------------------
-
     @app.route('/api/clinica/upload-foto', methods=['POST'])
     def api_upload_foto_clinica():
         try:
@@ -824,11 +781,9 @@ def register_routes(app, mail):
         except Exception as e:
             print(f"Erro upload foto clínica: {e}")
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Atualizar Profissional
     # -------------------------------
-
     @app.route('/api/profissional/atualizar', methods=['POST'])
     def api_atualizar_profissional():
         try:
@@ -852,13 +807,9 @@ def register_routes(app, mail):
             if 'bairro' in dados:
                 campos_update['bairro'] = dados['bairro'].strip()[:100]
             if 'cidade' in dados:
-                cidade_uf = dados['cidade'].strip()[:100]
-                campos_update['cidade'] = cidade_uf
-                # Tentar extrair estado
-                if ' - ' in cidade_uf:
-                    partes = cidade_uf.split(' - ')
-                    if len(partes) == 2 and len(partes[1]) == 2:
-                        campos_update['estado'] = partes[1].upper()
+                campos_update['cidade'] = dados['cidade'].strip()[:100]
+            if 'estado' in dados:
+                campos_update['estado'] = dados['estado'][:2].upper() or None
             if 'telefone' in dados:
                 campos_update['telefone'] = re.sub(r'\D', '', dados['telefone'])[:20]
             if 'horarioSemana' in dados or 'horarioFimSemana' in dados:
@@ -916,7 +867,6 @@ def register_routes(app, mail):
                         "INSERT INTO profissional_especialidade (idProfissional, idEspecialidade) VALUES (%s, %s)",
                         (profissional_id, nova_id)
                     )
-
             # Atualizar formação acadêmica (salvar como JSON/TEXT)
             if 'formacao' in dados and isinstance(dados['formacao'], list):
                 formacao_str = '||'.join([f"{f.get('curso', '')} - {f.get('instituicao', '')}" for f in dados['formacao'] if f.get('curso') and f.get('instituicao')])
@@ -930,11 +880,9 @@ def register_routes(app, mail):
         except Exception as e:
             print(f"Erro ao atualizar profissional: {e}")
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Atualizar Clínica
     # -------------------------------
-
     @app.route('/api/clinica/atualizar', methods=['POST'])
     def api_atualizar_clinica():
         try:
@@ -968,6 +916,8 @@ def register_routes(app, mail):
                 campos_update['bairro'] = dados['bairro'].strip()[:100]
             if 'cidade' in dados:
                 campos_update['cidade'] = dados['cidade'].strip()[:100]
+            if 'estado' in dados:
+                campos_update['estado'] = dados['estado'][:2].upper() or None
             if 'telefone' in dados:
                 campos_update['telefone'] = re.sub(r'\D', '', dados['telefone'])[:20]
             if 'horarioSemana' in dados:
@@ -1037,124 +987,324 @@ def register_routes(app, mail):
         except Exception as e:
             print(f"Erro ao atualizar clínica: {e}")
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
-    # API: Listar Profissionais e Clínicas (Vitrine)
+    # API: Contar Modalidades (Para os números dinâmicos) - COM FILTROS
     # -------------------------------
-
+    @app.route('/api/vitrine/counts', methods=['GET'])
+    def api_vitrine_counts():
+        try:
+            tipo = request.args.get('tipo', 'profissional')
+            filtro_especialidade = request.args.get('especialidade')
+            busca_textual = request.args.get('busca', '').strip()
+            busca_localizacao = request.args.get('localizacao', '').strip()
+            # Filtros booleanos
+            tem_convenio = request.args.get('aceita_convenio') == 'true'
+            tem_estacionamento = request.args.get('estacionamento') == 'true'
+            tem_acessibilidade = request.args.get('acessibilidade') == 'true'
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            if tipo == 'profissional':
+                sql = """
+                    SELECT m.nome as modalidade, COUNT(DISTINCT pm.idProfissional) as count
+                    FROM modalidades m
+                    LEFT JOIN profissional_modalidades pm ON m.idModalidade = pm.idModalidade
+                    LEFT JOIN profissional p ON pm.idProfissional = p.idProfissional
+                    LEFT JOIN profissional_especialidade pe ON p.idProfissional = pe.idProfissional
+                    LEFT JOIN especialidades esp ON pe.idEspecialidade = esp.idEspecialidade
+                    LEFT JOIN profissional_convenios pc ON p.idProfissional = pc.idProfissional
+                    LEFT JOIN profissional_comodidades pcom ON p.idProfissional = pcom.idProfissional
+                    LEFT JOIN comodidades com ON pcom.idComodidade = com.idComodidade
+                    WHERE pm.idProfissional IS NOT NULL
+                """
+                params = []
+                # Aplicar os mesmos filtros que na busca principal
+                # 1. Especialidade
+                if filtro_especialidade and filtro_especialidade != "Todas as especialidades":
+                    sql += " AND esp.nome = %s"
+                    params.append(filtro_especialidade)
+                # 2. Convênio
+                if tem_convenio:
+                    sql += " AND pc.idConvenio IS NOT NULL"
+                # 3. Comodidades
+                if tem_estacionamento:
+                    sql += " AND com.nome LIKE '%Estacionamento%'"
+                if tem_acessibilidade:
+                    sql += " AND com.nome LIKE '%Acessibilidade%'"
+                # 4. Busca textual
+                if busca_textual:
+                    sql += " AND (p.nome LIKE CONCAT('%%', %s, '%%') OR esp.nome LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%'))"
+                    params.extend([busca_textual, busca_textual, busca_textual])
+                # 5. Busca localização
+                if busca_localizacao:
+                    sql += " AND (p.cidade LIKE CONCAT('%%', %s, '%%') OR p.bairro LIKE CONCAT('%%', %s, '%%'))"
+                    params.extend([busca_localizacao, busca_localizacao])
+                sql += " GROUP BY m.idModalidade, m.nome ORDER BY m.idModalidade"
+                cursor.execute(sql, params)
+            else:
+                sql = """
+                    SELECT m.nome as modalidade, COUNT(DISTINCT cm.idClinica) as count
+                    FROM modalidades m
+                    LEFT JOIN clinica_modalidades cm ON m.idModalidade = cm.idModalidade
+                    LEFT JOIN clinica c ON cm.idClinica = c.idClinica
+                    LEFT JOIN clinica_convenios cc ON c.idClinica = cc.idClinica
+                    LEFT JOIN clinica_comodidades ccom ON c.idClinica = ccom.idClinica
+                    LEFT JOIN comodidades com ON ccom.idComodidade = com.idComodidade
+                    WHERE cm.idClinica IS NOT NULL
+                """
+                params = []
+                # Aplicar os mesmos filtros
+                if tem_convenio:
+                    sql += " AND cc.idConvenio IS NOT NULL"
+                if tem_estacionamento:
+                    sql += " AND com.nome LIKE '%Estacionamento%'"
+                if tem_acessibilidade:
+                    sql += " AND com.nome LIKE '%Acessibilidade%'"
+                # Busca textual
+                if busca_textual:
+                    sql += " AND (c.nomeExibicao LIKE CONCAT('%%', %s, '%%') OR c.tipo LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%'))"
+                    params.extend([busca_textual, busca_textual, busca_textual])
+                # Busca localização
+                if busca_localizacao:
+                    sql += " AND (c.cidade LIKE CONCAT('%%', %s, '%%') OR c.bairro LIKE CONCAT('%%', %s, '%%'))"
+                    params.extend([busca_localizacao, busca_localizacao])
+                sql += " GROUP BY m.idModalidade, m.nome ORDER BY m.idModalidade"
+                cursor.execute(sql, params)
+            counts = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            # Formatar como dicionário
+            result = {}
+            for row in counts:
+                result[row['modalidade']] = row['count']
+            return jsonify({'success': True, 'counts': result})
+        except Exception as e:
+            print(f"Erro counts: {e}")
+            return jsonify({'success': False, 'message': 'Erro interno'}), 500
+    # -------------------------------
+    # API: Listar Profissionais e Clínicas (Vitrine) COM FILTROS REAIS
+    # -------------------------------
     @app.route('/api/vitrine', methods=['GET'])
     def api_vitrine():
         try:
-            tipo = request.args.get('tipo', 'profissional')  # 'profissional' ou 'clinica'
+            # 1. CAPTURA OS PARÂMETROS
+            tipo = request.args.get('tipo', 'profissional')
+            filtro_especialidade = request.args.get('especialidade')
+            filtro_modalidades = request.args.getlist('modalidades[]') # Lista de modalidades
+            filtro_valor_max = request.args.get('valor_max')
+            filtro_ordenar = request.args.get('ordenar', 'relevancia')
+            busca_textual = request.args.get('busca', '').strip()
+            busca_localizacao = request.args.get('localizacao', '').strip()
+            # Filtros booleanos
+            tem_convenio = request.args.get('aceita_convenio') == 'true'
+            tem_estacionamento = request.args.get('estacionamento') == 'true'
+            tem_acessibilidade = request.args.get('acessibilidade') == 'true'
+            # Debug: Ver o que está chegando
+            print(f"FILTROS RECEBIDOS -> Tipo: {tipo}, Esp: {filtro_especialidade}, Mods: {filtro_modalidades}, Busca: '{busca_textual}', Local: '{busca_localizacao}'")
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
-            
+            cursor = conn.cursor(dictionary=True, buffered=True)
             resultados = []
-            
+            # ==========================================
+            # BUSCA PROFISSIONAL
+            # ==========================================
             if tipo == 'profissional':
-                cursor.execute("""
-                    SELECT 
-                        p.idProfissional as id,
-                        p.nome,
-                        p.endereco,
-                        p.bairro,
-                        p.cidade,
-                        p.estado,
-                        p.foto_perfil,
-                        GROUP_CONCAT(DISTINCT esp.nome SEPARATOR ', ') as especialidades,
-                        GROUP_CONCAT(DISTINCT s.nome, ' - R$ ', s.preco SEPARATOR ' | ') as servicos_info,
-                        GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as convenios
+                # Query Base com pontuação para busca
+                sql = """
+                    SELECT DISTINCT p.idProfissional as id, p.nome, p.cidade, p.bairro, p.estado, p.foto_perfil,
+                    -- Preço Médio (Tratando erro de conversão)
+                    (SELECT ROUND(AVG(CAST(REPLACE(REPLACE(sp.preco, 'R$', ''), ',', '.') AS DECIMAL(10,2))), 2)
+                      FROM servicos_profissional sp
+                      WHERE sp.idProfissional = p.idProfissional AND sp.preco REGEXP '[0-9]') as preco_medio,
+                    -- Preço Mínimo para ordenação
+                    (SELECT ROUND(MIN(CAST(REPLACE(REPLACE(sp.preco, 'R$', ''), ',', '.') AS DECIMAL(10,2))), 2)
+                      FROM servicos_profissional sp
+                      WHERE sp.idProfissional = p.idProfissional AND sp.preco REGEXP '[0-9]') as preco_min,
+                     GROUP_CONCAT(DISTINCT m.nome SEPARATOR ', ') as lista_modalidades,
+                     -- Especialidade Principal
+                     (SELECT e.nome FROM especialidades e
+                      JOIN profissional_especialidade pe ON e.idEspecialidade = pe.idEspecialidade
+                      WHERE pe.idProfissional = p.idProfissional LIMIT 1) as especialidade_principal,
+                     -- Média de Avaliações
+                     (SELECT ROUND(AVG(av.nota), 1) FROM agendamento a
+                      LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
+                      WHERE a.idProfissional = p.idProfissional AND av.idAvaliacao IS NOT NULL) as media_avaliacao,
+                     -- Pontuação para ordenação por relevância
+                     CASE
+                         WHEN %s != '' AND %s != '' AND (
+                             (p.nome LIKE CONCAT('%%', %s, '%%') OR esp.nome LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%')) AND
+                             (p.cidade LIKE CONCAT('%%', %s, '%%') OR p.bairro LIKE CONCAT('%%', %s, '%%'))
+                         ) THEN 3  -- Match ambos os campos
+                         WHEN %s != '' AND (
+                             p.nome LIKE CONCAT('%%', %s, '%%') OR esp.nome LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%')
+                         ) THEN 2  -- Match apenas busca textual
+                         WHEN %s != '' AND (
+                             p.cidade LIKE CONCAT('%%', %s, '%%') OR p.bairro LIKE CONCAT('%%', %s, '%%')
+                         ) THEN 1  -- Match apenas localização
+                         ELSE 0  -- Sem match
+                     END as pontuacao_relevancia
                     FROM profissional p
                     LEFT JOIN profissional_especialidade pe ON p.idProfissional = pe.idProfissional
                     LEFT JOIN especialidades esp ON pe.idEspecialidade = esp.idEspecialidade
-                    LEFT JOIN servicos_profissional s ON p.idProfissional = s.idProfissional
+                    LEFT JOIN profissional_modalidades pm ON p.idProfissional = pm.idProfissional
+                    LEFT JOIN modalidades m ON pm.idModalidade = m.idModalidade
                     LEFT JOIN profissional_convenios pc ON p.idProfissional = pc.idProfissional
-                    LEFT JOIN convenios c ON pc.idConvenio = c.idConvenio
-                    WHERE p.nome IS NOT NULL
-                    GROUP BY p.idProfissional
-                    LIMIT 50
-                """)
-                
-                for row in cursor.fetchall():
-                    servicos = row['servicos_info'].split(' | ') if row['servicos_info'] else []
-                    primeiro_preco = None
-                    if servicos:
-                        for s in servicos:
-                            if 'R$' in s:
-                                try:
-                                    preco_str = s.split('R$')[1].strip().replace(',', '.')
-                                    primeiro_preco = float(preco_str)
-                                    break
-                                except:
-                                    pass
-                    
+                    LEFT JOIN profissional_comodidades pcom ON p.idProfissional = pcom.idProfissional
+                    LEFT JOIN comodidades com ON pcom.idComodidade = com.idComodidade
+                    WHERE 1=1
+                """
+                params = [busca_textual, busca_localizacao, busca_textual, busca_textual, busca_textual, busca_localizacao, busca_localizacao,
+                         busca_textual, busca_textual, busca_textual, busca_textual,
+                         busca_localizacao, busca_localizacao, busca_localizacao]
+                # --- APLICAR FILTROS (WHERE) ---
+                # 1. Especialidade
+                if filtro_especialidade and filtro_especialidade != "Todas as especialidades":
+                    sql += " AND esp.nome = %s"
+                    params.append(filtro_especialidade)
+                # 2. Modalidades (Lógica OR - IN)
+                if filtro_modalidades:
+                    # Cria placeholders (?,?,?) baseado na quantidade de filtros
+                    format_strings = ','.join(['%s'] * len(filtro_modalidades))
+                    sql += f" AND m.nome IN ({format_strings})"
+                    params.extend(filtro_modalidades)
+                # 3. Convênio
+                if tem_convenio:
+                    sql += " AND pc.idConvenio IS NOT NULL"
+                # 4. Comodidades
+                if tem_estacionamento:
+                    sql += " AND com.nome LIKE '%Estacionamento%'"
+                if tem_acessibilidade:
+                    sql += " AND com.nome LIKE '%Acessibilidade%'"
+                # 5. Busca textual (se não estiver vazia, filtra apenas os que fazem match)
+                if busca_textual:
+                    sql += " AND (p.nome LIKE CONCAT('%%', %s, '%%') OR esp.nome LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%'))"
+                    params.extend([busca_textual, busca_textual, busca_textual])
+                # 6. Busca localização (se não estiver vazia, filtra apenas os que fazem match)
+                if busca_localizacao:
+                    sql += " AND (p.cidade LIKE CONCAT('%%', %s, '%%') OR p.bairro LIKE CONCAT('%%', %s, '%%'))"
+                    params.extend([busca_localizacao, busca_localizacao])
+                sql += " GROUP BY p.idProfissional"
+                # 7. Valor (HAVING)
+                if filtro_valor_max:
+                    sql += f" HAVING (preco_medio IS NULL OR preco_medio <= {float(filtro_valor_max)})"
+                # Ordenação por preço: menor primeiro
+                if filtro_ordenar == 'preco_menor':
+                    sql += " ORDER BY COALESCE(preco_medio, 999999) ASC"
+                elif filtro_ordenar == 'preco_maior':
+                    sql += " ORDER BY COALESCE(preco_medio, 0) DESC"
+                elif filtro_ordenar == 'avaliacao':
+                    sql += " ORDER BY COALESCE(media_avaliacao, 0) DESC, COALESCE(preco_medio, 999999) ASC"
+                else:
+                    # Relevância: primeiro por pontuação, depois por avaliação
+                    sql += " ORDER BY pontuacao_relevancia DESC, COALESCE(media_avaliacao, 0) DESC, COALESCE(preco_medio, 999999) ASC"
+                sql += " LIMIT 50"
+                cursor.execute(sql, params)
+                rows = cursor.fetchall()
+                for row in rows:
                     resultados.append({
                         'id': row['id'],
                         'tipo': 'profissional',
                         'nome': row['nome'],
-                        'especialidade': row['especialidades'] or None,
-                        'localizacao': f"{row.get('bairro', '')}, {row.get('cidade', '')} - {row.get('estado', '')}".strip(', -'),
-                        'preco': primeiro_preco,
-                        'convenios': row['convenios'].split(', ') if row['convenios'] else [],
+                        'especialidade': row['especialidade_principal'],
+                        'localizacao': f"{row['bairro']}, {row['cidade']}",
+                        'preco': row['preco_medio'],
+                        'modalidades': row['lista_modalidades'].split(', ') if row['lista_modalidades'] else [],
                         'foto': row['foto_perfil']
                     })
-            else:  # clinica
-                cursor.execute("""
-                    SELECT 
-                        c.idClinica as id,
-                        c.nomeExibicao as nome,
-                        c.tipo,
-                        c.historia,
-                        c.endereco,
-                        c.bairro,
-                        c.cidade,
-                        c.foto_perfil,
-                        GROUP_CONCAT(DISTINCT p.nome, ' - ', p.preco SEPARATOR ' | ') as procedimentos_info,
-                        GROUP_CONCAT(DISTINCT conv.nome SEPARATOR ', ') as convenios
+            # ==========================================
+            # BUSCA CLÍNICA
+            # ==========================================
+            else:
+                sql = """
+                    SELECT DISTINCT c.idClinica as id, c.nomeExibicao as nome, c.cidade, c.bairro, c.foto_perfil, c.tipo,
+                    (SELECT ROUND(AVG(CAST(REPLACE(REPLACE(proc.preco, 'R$', ''), ',', '.') AS DECIMAL(10,2))), 2)
+                      FROM procedimentos proc
+                      WHERE proc.idClinica = c.idClinica AND proc.preco REGEXP '[0-9]') as preco_medio,
+                    -- Preço Mínimo para ordenação
+                    (SELECT ROUND(MIN(CAST(REPLACE(REPLACE(proc.preco, 'R$', ''), ',', '.') AS DECIMAL(10,2))), 2)
+                      FROM procedimentos proc
+                      WHERE proc.idClinica = c.idClinica AND proc.preco REGEXP '[0-9]') as preco_min,
+                     GROUP_CONCAT(DISTINCT m.nome SEPARATOR ', ') as lista_modalidades,
+                     -- Pontuação para ordenação por relevância
+                     CASE
+                         WHEN %s != '' AND %s != '' AND (
+                             (c.nomeExibicao LIKE CONCAT('%%', %s, '%%') OR c.tipo LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%')) AND
+                             (c.cidade LIKE CONCAT('%%', %s, '%%') OR c.bairro LIKE CONCAT('%%', %s, '%%'))
+                         ) THEN 3  -- Match ambos os campos
+                         WHEN %s != '' AND (
+                             c.nomeExibicao LIKE CONCAT('%%', %s, '%%') OR c.tipo LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%')
+                         ) THEN 2  -- Match apenas busca textual
+                         WHEN %s != '' AND (
+                             c.cidade LIKE CONCAT('%%', %s, '%%') OR c.bairro LIKE CONCAT('%%', %s, '%%')
+                         ) THEN 1  -- Match apenas localização
+                         ELSE 0  -- Sem match
+                     END as pontuacao_relevancia
                     FROM clinica c
-                    LEFT JOIN procedimentos p ON c.idClinica = p.idClinica
+                    LEFT JOIN clinica_modalidades cm ON c.idClinica = cm.idClinica
+                    LEFT JOIN modalidades m ON cm.idModalidade = m.idModalidade
                     LEFT JOIN clinica_convenios cc ON c.idClinica = cc.idClinica
-                    LEFT JOIN convenios conv ON cc.idConvenio = conv.idConvenio
-                    WHERE c.nomeExibicao IS NOT NULL
-                    GROUP BY c.idClinica
-                    LIMIT 50
-                """)
-                
-                for row in cursor.fetchall():
-                    procedimentos = row['procedimentos_info'].split(' | ') if row['procedimentos_info'] else []
-                    primeiro_preco = None
-                    if procedimentos:
-                        for p in procedimentos:
-                            if ' - ' in p:
-                                try:
-                                    preco_str = p.split(' - ')[1].strip().replace(',', '.')
-                                    primeiro_preco = float(preco_str)
-                                    break
-                                except:
-                                    pass
-                    
+                    LEFT JOIN clinica_comodidades ccom ON c.idClinica = ccom.idClinica
+                    LEFT JOIN comodidades com ON ccom.idComodidade = com.idComodidade
+                    WHERE 1=1
+                """
+                params = [busca_textual, busca_localizacao, busca_textual, busca_textual, busca_textual, busca_localizacao, busca_localizacao,
+                         busca_textual, busca_textual, busca_textual, busca_textual,
+                         busca_localizacao, busca_localizacao, busca_localizacao]
+                if filtro_modalidades:
+                    format_strings = ','.join(['%s'] * len(filtro_modalidades))
+                    sql += f" AND m.nome IN ({format_strings})"
+                    params.extend(filtro_modalidades)
+                if tem_convenio:
+                    sql += " AND cc.idConvenio IS NOT NULL"
+                if tem_estacionamento:
+                    sql += " AND com.nome LIKE '%Estacionamento%'"
+                if tem_acessibilidade:
+                    sql += " AND com.nome LIKE '%Acessibilidade%'"
+                # Busca textual
+                if busca_textual:
+                    sql += " AND (c.nomeExibicao LIKE CONCAT('%%', %s, '%%') OR c.tipo LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%'))"
+                    params.extend([busca_textual, busca_textual, busca_textual])
+                # Busca localização
+                if busca_localizacao:
+                    sql += " AND (c.cidade LIKE CONCAT('%%', %s, '%%') OR c.bairro LIKE CONCAT('%%', %s, '%%'))"
+                    params.extend([busca_localizacao, busca_localizacao])
+                sql += " GROUP BY c.idClinica"
+                if filtro_valor_max:
+                    sql += f" HAVING (preco_medio IS NULL OR preco_medio <= {float(filtro_valor_max)})"
+                # Ordenação
+                if filtro_ordenar == 'preco_menor':
+                    sql += " ORDER BY COALESCE(preco_min, 999999) ASC"
+                elif filtro_ordenar == 'preco_maior':
+                    sql += " ORDER BY COALESCE(preco_medio, 0) DESC"
+                elif filtro_ordenar == 'avaliacao':
+                    sql += " ORDER BY (SELECT ROUND(AVG(av.nota), 1) FROM agendamento a LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento WHERE a.idClinica = c.idClinica AND av.idAvaliacao IS NOT NULL) DESC, COALESCE(preco_medio, 999999) ASC"
+                else:
+                    # Relevância
+                    sql += " ORDER BY pontuacao_relevancia DESC"
+                sql += " LIMIT 50"
+                cursor.execute(sql, params)
+                rows = cursor.fetchall()
+                for row in rows:
                     resultados.append({
                         'id': row['id'],
                         'tipo': 'clinica',
                         'nome': row['nome'],
-                        'especialidade': row['tipo'] or 'Clínica multidisciplinar',
-                        'localizacao': f"{row.get('bairro', '')}, {row.get('cidade', '')}".strip(', '),
-                        'preco': primeiro_preco,
-                        'convenios': row['convenios'].split(', ') if row['convenios'] else [],
+                        'especialidade': row['tipo'],
+                        'localizacao': f"{row['bairro']}, {row['cidade']}",
+                        'preco': row['preco_medio'],
+                        'modalidades': row['lista_modalidades'].split(', ') if row['lista_modalidades'] else [],
                         'foto': row['foto_perfil']
                     })
-            
             cursor.close()
             conn.close()
-            
             return jsonify({'success': True, 'resultados': resultados})
         except Exception as e:
-            print(f"Erro ao buscar vitrine: {e}")
+            print(f"ERRO VITRINE: {e}")
+            import traceback
+            traceback.print_exc()
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Buscar Profissional (Perfil Público)
     # -------------------------------
+    # Mantenha o alinhamento igual às outras funções do seu arquivo (ex: api_agendamentos_usuario)
 
     @app.route('/api/profissional/<int:prof_id>', methods=['GET'])
     def api_get_profissional(prof_id):
@@ -1162,18 +1312,16 @@ def register_routes(app, mail):
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
 
+            # 1. BUSCAR DADOS DO PROFISSIONAL (Sem misturar serviços aqui)
             cursor.execute("""
                 SELECT p.*,
-                    GROUP_CONCAT(DISTINCT s.nome, ' - R$ ', s.preco SEPARATOR '||') as servicos,
                     GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as convenios
                 FROM profissional p
-                LEFT JOIN servicos_profissional s ON p.idProfissional = s.idProfissional
                 LEFT JOIN profissional_convenios pc ON p.idProfissional = pc.idProfissional
                 LEFT JOIN convenios c ON pc.idConvenio = c.idConvenio
                 WHERE p.idProfissional = %s
                 GROUP BY p.idProfissional
             """, (prof_id,))
-
             prof = cursor.fetchone()
 
             if not prof:
@@ -1181,19 +1329,31 @@ def register_routes(app, mail):
                 conn.close()
                 return jsonify({'success': False, 'message': 'Profissional não encontrado'}), 404
 
-            # Buscar média de avaliações e algumas avaliações
+            # 2. BUSCAR SERVIÇOS SEPARADAMENTE (CORREÇÃO DO BOTÃO VAZIO)
+            # Trazemos explicitamente o idServico, nome e preco
+            cursor.execute("""
+                SELECT idServico, nome, preco 
+                FROM servicos_profissional 
+                WHERE idProfissional = %s
+            """, (prof_id,))
+            servicos_do_banco = cursor.fetchall()
+            
+            # Atribui a lista correta com os IDs
+            prof['servicos_list'] = servicos_do_banco
+
+            # 3. DADOS DE AVALIAÇÃO
             cursor.execute("""
                 SELECT AVG(av.nota) as media_avaliacao, COUNT(av.idAvaliacao) as total_avaliacoes
                 FROM agendamento a
                 LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
                 WHERE a.idProfissional = %s AND av.idAvaliacao IS NOT NULL
             """, (prof_id,))
-
             avaliacao_result = cursor.fetchone()
+            
             media_avaliacao = round(float(avaliacao_result['media_avaliacao']), 1) if avaliacao_result['media_avaliacao'] else 0.0
             total_avaliacoes = avaliacao_result['total_avaliacoes'] or 0
 
-            # Buscar algumas avaliações recentes
+            # 4. AVALIAÇÕES RECENTES
             cursor.execute("""
                 SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
                 FROM avaliacoes av
@@ -1203,41 +1363,30 @@ def register_routes(app, mail):
                 ORDER BY av.data_avaliacao DESC
                 LIMIT 3
             """, (prof_id,))
-
             avaliacoes = cursor.fetchall()
 
             cursor.close()
             conn.close()
 
-            # Processar serviços
-            servicos = []
-            if prof['servicos']:
-                for s in prof['servicos'].split('||'):
-                    if ' - R$ ' in s:
-                        nome, preco = s.split(' - R$ ', 1)
-                        servicos.append({'nome': nome, 'preco': preco})
-
-            prof['servicos_list'] = servicos
+            # Montagem final dos dados
             prof['convenios_list'] = prof['convenios'].split(', ') if prof['convenios'] else []
             prof['media_avaliacao'] = media_avaliacao
             prof['total_avaliacoes'] = total_avaliacoes
             prof['avaliacoes_recentes'] = avaliacoes
 
             return jsonify({'success': True, 'profissional': prof})
+
         except Exception as e:
             print(f"Erro ao buscar profissional: {e}")
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Buscar Clínica (Perfil Público)
     # -------------------------------
-
     @app.route('/api/clinica/<int:clinica_id>', methods=['GET'])
     def api_get_clinica(clinica_id):
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-
             cursor.execute("""
                 SELECT c.*,
                     GROUP_CONCAT(DISTINCT p.nome, ' - ', p.preco SEPARATOR '||') as procedimentos,
@@ -1251,14 +1400,11 @@ def register_routes(app, mail):
                 WHERE c.idClinica = %s
                 GROUP BY c.idClinica
             """, (clinica_id,))
-
             clinica = cursor.fetchone()
-
             if not clinica:
                 cursor.close()
                 conn.close()
                 return jsonify({'success': False, 'message': 'Clínica não encontrada'}), 404
-
             # Buscar média de avaliações e algumas avaliações
             cursor.execute("""
                 SELECT AVG(av.nota) as media_avaliacao, COUNT(av.idAvaliacao) as total_avaliacoes
@@ -1266,11 +1412,9 @@ def register_routes(app, mail):
                 LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
                 WHERE a.idClinica = %s AND av.idAvaliacao IS NOT NULL
             """, (clinica_id,))
-
             avaliacao_result = cursor.fetchone()
             media_avaliacao = round(float(avaliacao_result['media_avaliacao']), 1) if avaliacao_result['media_avaliacao'] else 0.0
             total_avaliacoes = avaliacao_result['total_avaliacoes'] or 0
-
             # Buscar algumas avaliações recentes
             cursor.execute("""
                 SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
@@ -1281,12 +1425,9 @@ def register_routes(app, mail):
                 ORDER BY av.data_avaliacao DESC
                 LIMIT 3
             """, (clinica_id,))
-
             avaliacoes = cursor.fetchall()
-
             cursor.close()
             conn.close()
-
             # Processar procedimentos
             procedimentos = []
             if clinica['procedimentos']:
@@ -1294,7 +1435,6 @@ def register_routes(app, mail):
                     if ' - ' in p:
                         nome, preco = p.split(' - ', 1)
                         procedimentos.append({'nome': nome, 'preco': preco})
-
             # Processar equipe
             equipe = []
             if clinica['equipe']:
@@ -1302,27 +1442,22 @@ def register_routes(app, mail):
                     if ' - ' in e:
                         nome, especialidade = e.split(' - ', 1)
                         equipe.append({'nome': nome, 'especialidade': especialidade})
-
             clinica['procedimentos_list'] = procedimentos
             clinica['equipe_list'] = equipe
             clinica['convenios_list'] = clinica['convenios'].split(', ') if clinica['convenios'] else []
             clinica['media_avaliacao'] = media_avaliacao
             clinica['total_avaliacoes'] = total_avaliacoes
             clinica['avaliacoes_recentes'] = avaliacoes
-
             return jsonify({'success': True, 'clinica': clinica})
         except Exception as e:
             print(f"Erro ao buscar clínica: {e}")
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # ROTAS: Clínica
     # -------------------------------
-
     @app.route('/clinica/editar')
     def clinica_editar():
         return render_template('clinicaEditar.html')
-
     @app.route('/clinica/perfil/<int:clinica_id>')
     def clinica_perfil(clinica_id):
         try:
@@ -1362,7 +1497,6 @@ def register_routes(app, mail):
                 LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
                 WHERE a.idClinica = %s AND av.idAvaliacao IS NOT NULL
             """, (clinica_id,))
-
             avaliacao_result = cursor.fetchone()
             
             if avaliacao_result:
@@ -1371,7 +1505,6 @@ def register_routes(app, mail):
             else:
                 clinica['media_avaliacao'] = 0.0
                 clinica['total_avaliacoes'] = 0
-
             # ---------------------------------------------------------
             # 3. BUSCAR AVALIAÇÕES RECENTES (DETALHADAS)
             # ---------------------------------------------------------
@@ -1384,9 +1517,7 @@ def register_routes(app, mail):
                 ORDER BY av.data_avaliacao DESC
                 LIMIT 3
             """, (clinica_id,))
-
             clinica['avaliacoes_recentes'] = cursor.fetchall()
-
             # Agora podemos fechar a conexão
             cursor.close()
             conn.close()
@@ -1418,28 +1549,63 @@ def register_routes(app, mail):
             clinica['convenios_list'] = clinica['convenios'].split(', ') if clinica['convenios'] else []
             
             return render_template('clinicaPerfil.html', clinica=clinica)
-
         except Exception as e:
             # Em caso de erro, imprime no terminal e mostra na tela para facilitar o diagnóstico
             print(f"ERRO CRÍTICO NA ROTA DA CLÍNICA: {e}")
             import traceback
             traceback.print_exc()
             return f"<h1>Erro Interno:</h1><p>{str(e)}</p>", 500
-
     # -------------------------------
     # ROTAS: Profissional
     # -------------------------------
-
     @app.route('/profissional/editar')
     def doutor_editar():
-        return render_template('doutorEditar.html')
-
+        if 'profissional_id' not in session:
+            return redirect(url_for('cadastro_usuario'))
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            # Buscar dados do profissional
+            cursor.execute("SELECT * FROM profissional WHERE idProfissional = %s", (session['profissional_id'],))
+            profissional = cursor.fetchone()
+            if not profissional:
+                cursor.close()
+                conn.close()
+                return redirect(url_for('cadastro_usuario'))
+            # Buscar especialidades
+            cursor.execute("""
+                SELECT especialidade FROM profissional_especialidade
+                WHERE idProfissional = %s
+            """, (profissional['idProfissional'],))
+            especialidades = [row['especialidade'] for row in cursor.fetchall()]
+            # Buscar serviços
+            cursor.execute("""
+                SELECT * FROM servicos_profissional
+                WHERE idProfissional = %s ORDER BY idServico
+            """, (profissional['idProfissional'],))
+            servicos = cursor.fetchall()
+            # Buscar convênios
+            cursor.execute("""
+                SELECT c.nome FROM profissional_convenios pc
+                JOIN convenios c ON pc.idConvenio = c.idConvenio
+                WHERE pc.idProfissional = %s
+            """, (profissional['idProfissional'],))
+            convenios = [row['nome'] for row in cursor.fetchall()]
+            cursor.close()
+            conn.close()
+            return render_template('doutorEditar.html',
+                                 profissional=profissional,
+                                 especialidades=especialidades,
+                                 servicos=servicos,
+                                 convenios=convenios)
+        except Exception as e:
+            print(f"Erro ao carregar edição do profissional: {e}")
+            return redirect(url_for('cadastro_usuario'))
     @app.route('/profissional/perfil/<int:prof_id>')
     def doutor_perfil(prof_id):
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-
             cursor.execute("""
                 SELECT p.*,
                     GROUP_CONCAT(DISTINCT s.nome, ' - R$ ', s.preco SEPARATOR '||') as servicos,
@@ -1454,14 +1620,11 @@ def register_routes(app, mail):
                 WHERE p.idProfissional = %s
                 GROUP BY p.idProfissional, p.formacao_academica
             """, (prof_id,))
-
             prof = cursor.fetchone()
-
             if not prof:
                 cursor.close()
                 conn.close()
                 return "Profissional não encontrado", 404
-
             # Buscar média de avaliações e algumas avaliações
             cursor.execute("""
                 SELECT AVG(av.nota) as media_avaliacao, COUNT(av.idAvaliacao) as total_avaliacoes
@@ -1469,11 +1632,9 @@ def register_routes(app, mail):
                 LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
                 WHERE a.idProfissional = %s AND av.idAvaliacao IS NOT NULL
             """, (prof_id,))
-
             avaliacao_result = cursor.fetchone()
             media_avaliacao = round(float(avaliacao_result['media_avaliacao']), 1) if avaliacao_result['media_avaliacao'] else 0.0
             total_avaliacoes = avaliacao_result['total_avaliacoes'] or 0
-
             # Buscar algumas avaliações recentes
             cursor.execute("""
                 SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
@@ -1484,12 +1645,9 @@ def register_routes(app, mail):
                 ORDER BY av.data_avaliacao DESC
                 LIMIT 3
             """, (prof_id,))
-
             avaliacoes = cursor.fetchall()
-
             cursor.close()
             conn.close()
-
             # Processar serviços
             servicos = []
             if prof['servicos']:
@@ -1497,11 +1655,9 @@ def register_routes(app, mail):
                     if ' - R$ ' in s:
                         nome, preco = s.split(' - R$ ', 1)
                         servicos.append({'nome': nome, 'preco': preco})
-
             prof['servicos_list'] = servicos
             prof['convenios_list'] = prof['convenios'].split(', ') if prof['convenios'] else []
             prof['especialidades_list'] = prof['especialidades'].split(', ') if prof['especialidades'] else []
-
             # Processar formação acadêmica
             formacoes = []
             if prof.get('formacao_academica'):
@@ -1510,46 +1666,35 @@ def register_routes(app, mail):
                         curso, instituicao = f.split(' - ', 1)
                         formacoes.append({'curso': curso.strip(), 'instituicao': instituicao.strip()})
             prof['formacoes_list'] = formacoes
-
             prof['media_avaliacao'] = media_avaliacao
             prof['total_avaliacoes'] = total_avaliacoes
             prof['avaliacoes_recentes'] = avaliacoes
-
             return render_template('doutorPerfil.html', profissional=prof)
         except Exception as e:
             print(f"Erro ao buscar profissional: {e}")
             return "Erro interno", 500
-
     # -------------------------------
     # ROTA: Perfil usuário
     # -------------------------------
-
     @app.route('/perfil')
     def perfil_usuario():
         if 'user_id' not in session:
             return redirect(url_for('cadastro_usuario'))
-
         usuario = get_usuario_logado()
-
         if not usuario:
             session.clear()
             return redirect(url_for('cadastro_usuario'))
-
         return render_template('perfil.html', usuario=usuario)
-
     # -------------------------------
     # API: Buscar mais avaliações
     # -------------------------------
-
     @app.route('/api/avaliacoes/<tipo>/<int:id_entidade>', methods=['GET'])
     def api_get_avaliacoes(tipo, id_entidade):
         try:
             offset = int(request.args.get('offset', 0))
             limit = int(request.args.get('limit', 6))
-
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-
             if tipo == 'clinica':
                 cursor.execute("""
                     SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
@@ -1574,46 +1719,35 @@ def register_routes(app, mail):
                 cursor.close()
                 conn.close()
                 return jsonify({'success': False, 'message': 'Tipo inválido'}), 400
-
             avaliacoes = cursor.fetchall()
             cursor.close()
             conn.close()
-
             return jsonify({'success': True, 'avaliacoes': avaliacoes})
         except Exception as e:
             print(f"Erro ao buscar avaliações: {e}")
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # API: Enviar avaliação
     # -------------------------------
-
     @app.route('/api/avaliacao/submit', methods=['POST'])
     def api_submit_avaliacao():
         try:
             if 'user_id' not in session:
                 return jsonify({'success': False, 'message': 'Não autenticado'}), 401
-
             dados = request.get_json()
             tipo = dados.get('tipo')  # 'clinica' or 'profissional'
             id_entidade = dados.get('id_entidade')
             nota = dados.get('nota')
             comentario = dados.get('comentario', '').strip()
-
             if not all([tipo, id_entidade, nota]):
                 return jsonify({'success': False, 'message': 'Dados incompletos'}), 400
-
             if tipo not in ['clinica', 'profissional']:
                 return jsonify({'success': False, 'message': 'Tipo inválido'}), 400
-
             if not (1 <= int(nota) <= 5):
                 return jsonify({'success': False, 'message': 'Nota deve ser entre 1 e 5'}), 400
-
             user_id = session['user_id']
-
             conn = get_db_connection()
             cursor = conn.cursor()
-
             # Check if user has completed appointment with this entity
             if tipo == 'clinica':
                 cursor.execute("""
@@ -1627,34 +1761,27 @@ def register_routes(app, mail):
                     WHERE idUsuario = %s AND idProfissional = %s AND status = 'concluido'
                     LIMIT 1
                 """, (user_id, id_entidade))
-
             agendamento = cursor.fetchone()
             if not agendamento:
                 cursor.close()
                 conn.close()
                 return jsonify({'success': False, 'message': 'Você precisa ter um agendamento concluído para avaliar'}), 400
-
             id_agendamento = agendamento[0]
-
             # Insert evaluation
             cursor.execute("""
                 INSERT INTO avaliacoes (idAgendamento, nota, comentario, data_avaliacao)
                 VALUES (%s, %s, %s, NOW())
             """, (id_agendamento, nota, comentario))
-
             conn.commit()
             cursor.close()
             conn.close()
-
             return jsonify({'success': True, 'message': 'Avaliação enviada com sucesso!'})
         except Exception as e:
             print(f"Erro ao enviar avaliação: {e}")
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
-
     # -------------------------------
     # CONTEXT PROCESSOR
     # -------------------------------
-
     @app.context_processor
     def inject_user():
         u = None

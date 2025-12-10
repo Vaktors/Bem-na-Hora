@@ -77,7 +77,7 @@ a {
 
 /* --- CONTAINER PRINCIPAL --- */
 .profile-container {
-    max-width: 1100px;
+    width: 900px;
     margin: 40px auto;
     padding: 0 20px;
 }
@@ -473,6 +473,34 @@ a {
     color: var(--azul-escuro);
 }
 
+.btn-agendar {
+    padding: 12px 25px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--azul-principal);
+    color: white;
+    border: none;
+}
+
+.btn-agendar:hover {
+    background-color: var(--azul-escuro);
+    transform: translateY(-2px);
+}
+
+.service-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+
 .free-badge {
     color: #2ecc71 !important;
 }
@@ -694,7 +722,7 @@ a {
 
     /* 3. CONTAINER PRINCIPAL */
     .profile-container {
-        max-width: 950px;
+        width: 800px;
         /* Reduzido de 1100px */
         margin: 30px auto;
     }
@@ -994,6 +1022,157 @@ a {
     transform: translateY(0);
 }
 
+/* --- MODAL DE AGENDAMENTO --- */
+.etapa-agendamento {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.etapa-agendamento h4 {
+    color: var(--turques);
+    font-size: 1.2rem;
+    margin: 0;
+    text-align: center;
+}
+
+.mini-calendario {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.calendario-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.calendario-header button {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--azul-principal);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.calendario-header button:hover {
+    background-color: var(--bg-suave);
+}
+
+.mes-ano {
+    font-weight: 600;
+    color: var(--turques);
+    font-size: 1.1rem;
+}
+
+.dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--cinza-texto);
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.dia-calendario {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.dia-calendario:hover:not(.dia-desabilitado):not(.dia-selecionado) {
+    background-color: var(--bg-suave);
+    color: var(--azul-principal);
+}
+
+.dia-calendario.dia-desabilitado {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.dia-calendario.dia-selecionado {
+    background-color: var(--azul-principal);
+    color: white;
+}
+
+.dia-calendario.dia-atual {
+    background-color: var(--azul-escuro);
+    color: white;
+}
+
+.dia-calendario.dia-atual.dia-selecionado {
+    background-color: var(--azul-principal);
+}
+
+.lista-horarios {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.horario-item {
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    color: var(--turques);
+}
+
+.horario-item:hover:not(.horario-indisponivel) {
+    border-color: var(--azul-principal);
+    background-color: var(--bg-suave);
+}
+
+.horario-item.horario-selecionado {
+    border-color: var(--azul-principal);
+    background-color: var(--azul-principal);
+    color: white;
+}
+
+.horario-item.horario-indisponivel {
+    color: #ccc;
+    cursor: not-allowed;
+    border-color: #f0f0f0;
+    background-color: #f9f9f9;
+}
+
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -1045,14 +1224,14 @@ a {
 
 .star-rating i {
     font-size: 2rem;
-    color: #ddd;
+    color: #f1c40f;
     cursor: pointer;
     transition: color 0.2s;
 }
 
 .star-rating i:hover,
 .star-rating i.active {
-    color: #f1c40f;
+    color: #ffe70a;
 }
 
 .comment-section {
@@ -1098,7 +1277,7 @@ a {
     padding: 12px 25px;
     background-color: transparent;
     color: var(--preto);
-    border: 2px solid var(--preto);
+    border: 3px solid var(--preto);
     border-radius: 25px;
     font-weight: 600;
     font-size: 0.95rem;
@@ -1109,6 +1288,7 @@ a {
 
 .btn-cancel:hover {
     background-color: #f5f5f5;
+    transform: translateY(-2px);
 }
 
 .btn-submit {

@@ -28,6 +28,38 @@
     }
   });
 
+  // --- Busca da barra principal (redirecionar para vitrine) ---
+  safe(() => {
+    const searchInput = document.getElementById('search-input-index');
+    const locationInput = document.getElementById('location-input-index');
+    const btnSearch = document.getElementById('btn-search-index');
+
+    function redirecionarParaVitrine() {
+      const busca = (searchInput?.value || '').trim();
+      const localizacao = (locationInput?.value || '').trim();
+
+      // Construir URL com parâmetros
+      const params = new URLSearchParams();
+      if (busca) params.append('busca', busca);
+      if (localizacao) params.append('localizacao', localizacao);
+
+      const url = `/vitrine?${params.toString()}`;
+      window.location.href = url;
+    }
+
+    if (btnSearch) btnSearch.addEventListener('click', redirecionarParaVitrine);
+    if (searchInput) {
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') redirecionarParaVitrine();
+      });
+    }
+    if (locationInput) {
+      locationInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') redirecionarParaVitrine();
+      });
+    }
+  });
+
   // Lógica de dropdown removida - agora gerenciada pelo header.js global
 
   // --- Smooth scroll seguro para âncoras internas ---

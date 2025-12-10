@@ -95,9 +95,8 @@
                                 {% if profissional.instagram %}<a href="https://instagram.com/{{ profissional.instagram }}" target="_blank" title="Instagram"><i class="fa-brands fa-instagram"></i></a>{% endif %}
                             </div>
                         </div>
-                        
+
                         <div class="action-buttons">
-                            <button class="btn-primary"><i class="fa-brands fa-whatsapp"></i> Contatar</button>
                             <button class="btn-secondary"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
                         </div>
                     </div>
@@ -176,8 +175,19 @@
                             <div class="service-info">
                                 <h4>{{ servico.nome }}</h4>
                             </div>
-                            <div class="service-price">
-                                <span>R$ {{ servico.preco }}</span>
+                            <div class="service-right">
+                                <div class="service-price">
+                                    <span>R$ {{ servico.preco }}</span>
+                                </div>
+                                <div class="service-action">
+                                    
+                                    <div style="background: yellow; color: black; border: 2px solid red; padding: 5px; margin-bottom: 10px; font-weight: bold; font-size: 12px;">
+                                        DADOS: {{ servico }}
+                                    </div>
+                                    <button class="btn-agendar" data-id="{{ servico.idServico }}">
+                                        <i class="fa-solid fa-calendar-plus"></i> Agendar
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
@@ -190,19 +200,26 @@
             <!-- Conteúdo: Avaliações -->
             <div id="avaliacoes" class="tab-pane">
                 <div class="reviews-summary">
-                    <div class="big-score">{{ profissional.media_avaliacao|default(0) }}</div>
-                    <div class="score-stars">
-                        {% for i in range(5) %}
-                            {% if profissional.media_avaliacao >= i+1 %}
-                                <i class="fa-solid fa-star"></i>
-                            {% elif profissional.media_avaliacao >= i+0.5 %}
-                                <i class="fa-solid fa-star-half-stroke"></i>
-                            {% else %}
-                                <i class="fa-regular fa-star"></i>
-                            {% endif %}
-                        {% endfor %}
-                        <span>({{ profissional.total_avaliacoes|default(0) }} Avaliações)</span>
+                    <div class="score-section">
+                        <div class="big-score">{{ profissional.media_avaliacao|default(0) }}</div>
+                        <div class="score-stars">
+                            {% for i in range(5) %}
+                                {% if profissional.media_avaliacao >= i+1 %}
+                                    <i class="fa-solid fa-star"></i>
+                                {% elif profissional.media_avaliacao >= i+0.5 %}
+                                    <i class="fa-solid fa-star-half-stroke"></i>
+                                {% else %}
+                                    <i class="fa-regular fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span>({{ profissional.total_avaliacoes|default(0) }} Avaliações)</span>
+                        </div>
                     </div>
+                    {% if usuario_logado %}
+                    <button class="btn-secondary evaluate-btn" onclick="abrirModalAvaliacao('profissional', {{ profissional.idProfissional }})">
+                        <i class="fa-solid fa-star"></i> Avaliar Profissional
+                    </button>
+                    {% endif %}
                 </div>
 
                 <div class="reviews-grid">
@@ -318,9 +335,37 @@
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn-cancel" onclick="fecharModalAvaliacao()">Cancelar</button>
-                        <button type="submit" class="btn-submit" id="btnSubmitAvaliacao">Enviar Avaliação</button>
+                        <button type="submit" class="btn-primary" id="btnSubmitAvaliacao">Enviar Avaliação</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE AGENDAMENTO -->
+    <div id="modalAgendamento" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Agendar Consulta</h3>
+                <button class="modal-close" onclick="fecharModalAgendamento()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="etapaData" class="etapa-agendamento">
+                    <h4>Selecione uma data</h4>
+                    <div id="miniCalendario" class="mini-calendario">
+                        <!-- Calendário será gerado dinamicamente -->
+                    </div>
+                </div>
+                <div id="etapaHorarios" class="etapa-agendamento" style="display: none;">
+                    <h4>Horários disponíveis para <span id="dataSelecionada"></span></h4>
+                    <div id="listaHorarios" class="lista-horarios">
+                        <!-- Horários serão carregados dinamicamente -->
+                    </div>
+                    <div class="modal-actions" style="margin-top: 30px;">
+                        <button type="button" class="btn-secondary" onclick="voltarParaData()">Voltar</button>
+                        <button type="button" class="btn-primary" id="btnConfirmarAgendamento" disabled onclick="confirmarAgendamento()">Confirmar Agendamento</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

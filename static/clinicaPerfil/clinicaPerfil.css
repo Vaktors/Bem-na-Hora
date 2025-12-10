@@ -73,7 +73,7 @@ a {
 
 /* --- CONTAINER PRINCIPAL --- */
 .profile-container {
-    max-width: 1100px;
+    width: 900px;
     margin: 40px auto;
     padding: 0 20px;
 }
@@ -82,8 +82,8 @@ a {
 .profile-card {
     background: var(--branco);
     border-radius: 40px;
-    height: 500px;
-    /* Altura fixa */
+    min-height: 400px;
+    /* Altura mínima */
     padding: 50px;
     box-shadow: 0 20px 40px rgba(0, 52, 89, 0.08);
     margin-bottom: 100px;
@@ -527,6 +527,33 @@ a {
     color: var(--azul-escuro);
 }
 
+.btn-agendar {
+    padding: 12px 25px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--azul-principal);
+    color: white;
+    border: none;
+}
+
+.btn-agendar:hover {
+    background-color: var(--azul-escuro);
+    transform: translateY(-2px);
+}
+
+.service-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .reviews-summary {
     display: flex;
     justify-content: space-between;
@@ -777,14 +804,13 @@ a {
 
 .star-rating i {
     font-size: 2rem;
-    color: #ddd;
+    color: #f1c40f;
     cursor: pointer;
     transition: color 0.2s;
 }
 
-.star-rating i:hover,
-.star-rating i.active {
-    color: #f1c40f;
+.star-rating i:hover {
+    color: #ffe70a;
 }
 
 .comment-section {
@@ -807,7 +833,7 @@ a {
     font-size: 1rem;
     background-color: #f7f7f7;
     outline-color: var(--azul-principal);
-    resize: vertical;
+    resize: none;
     min-height: 100px;
     font-family: 'Poppins', sans-serif;
 }
@@ -830,7 +856,7 @@ a {
     padding: 12px 25px;
     background-color: transparent;
     color: var(--preto);
-    border: 2px solid var(--preto);
+    border: 3px solid var(--preto);
     border-radius: 25px;
     font-weight: 600;
     font-size: 0.95rem;
@@ -841,6 +867,7 @@ a {
 
 .btn-cancel:hover {
     background-color: #f5f5f5;
+    transform: translateY(-2px);
 }
 
 .btn-submit {
@@ -992,7 +1019,7 @@ a {
     }
 
     .profile-container {
-        max-width: 950px;
+        width: 850px;
         margin: 30px auto;
     }
 
@@ -1000,7 +1027,8 @@ a {
     .profile-card {
         padding: 35px;
         border-radius: 30px;
-        margin-bottom: 50px;
+        margin-bottom: 100px;
+
     }
 
     .profile-content-wrapper {
