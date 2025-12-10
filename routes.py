@@ -30,7 +30,7 @@ from utils import (
 
 
 def register_routes(app, mail):
-    # -------------------------------
+    # ----------------------------- --
     # ROTAS PRINCIPAIS
     # -------------------------------
 
@@ -1329,6 +1329,9 @@ def register_routes(app, mail):
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
             
+            # ---------------------------------------------------------
+            # 1. BUSCAR DADOS PRINCIPAIS DA CLÍNICA
+            # ---------------------------------------------------------
             cursor.execute("""
                 SELECT c.*,
                     GROUP_CONCAT(DISTINCT p.nome, ' - ', p.preco SEPARATOR '||') as procedimentos,
@@ -1344,35 +1347,84 @@ def register_routes(app, mail):
             """, (clinica_id,))
             
             clinica = cursor.fetchone()
+            
+            if not clinica:
+                cursor.close()
+                conn.close()
+                return "Clínica não encontrada", 404
+            
+            # ---------------------------------------------------------
+            # 2. BUSCAR ESTATÍSTICAS DE AVALIAÇÃO
+            # ---------------------------------------------------------
+            cursor.execute("""
+                SELECT AVG(av.nota) as media_avaliacao, COUNT(av.idAvaliacao) as total_avaliacoes
+                FROM agendamento a
+                LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
+                WHERE a.idClinica = %s AND av.idAvaliacao IS NOT NULL
+            """, (clinica_id,))
+
+            avaliacao_result = cursor.fetchone()
+            
+            if avaliacao_result:
+                clinica['media_avaliacao'] = round(float(avaliacao_result['media_avaliacao']), 1) if avaliacao_result['media_avaliacao'] else 0.0
+                clinica['total_avaliacoes'] = avaliacao_result['total_avaliacoes'] or 0
+            else:
+                clinica['media_avaliacao'] = 0.0
+                clinica['total_avaliacoes'] = 0
+
+            # ---------------------------------------------------------
+            # 3. BUSCAR AVALIAÇÕES RECENTES (DETALHADAS)
+            # ---------------------------------------------------------
+            cursor.execute("""
+                SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
+                FROM avaliacoes av
+                JOIN agendamento a ON av.idAgendamento = a.idAgendamento
+                JOIN usuario u ON a.idUsuario = u.idUsuario
+                WHERE a.idClinica = %s
+                ORDER BY av.data_avaliacao DESC
+                LIMIT 3
+            """, (clinica_id,))
+
+            clinica['avaliacoes_recentes'] = cursor.fetchall()
+
+            # Agora podemos fechar a conexão
             cursor.close()
             conn.close()
             
-            if not clinica:
-                return "Clínica não encontrada", 404
+            # ---------------------------------------------------------
+            # 4. PROCESSAR STRINGS EM LISTAS (Python)
+            # ---------------------------------------------------------
             
-            # Processar dados
+            # Processar Procedimentos
             procedimentos = []
             if clinica['procedimentos']:
                 for p in clinica['procedimentos'].split('||'):
                     if ' - ' in p:
-                        nome, preco = p.split(' - ', 1)
-                        procedimentos.append({'nome': nome, 'preco': preco})
+                        partes = p.split(' - ', 1)
+                        if len(partes) == 2:
+                            procedimentos.append({'nome': partes[0], 'preco': partes[1]})
             
+            # Processar Equipe
             equipe = []
             if clinica['equipe']:
                 for e in clinica['equipe'].split('||'):
                     if ' - ' in e:
-                        nome, especialidade = e.split(' - ', 1)
-                        equipe.append({'nome': nome, 'especialidade': especialidade})
+                        partes = e.split(' - ', 1)
+                        if len(partes) == 2:
+                            equipe.append({'nome': partes[0], 'especialidade': partes[1]})
             
             clinica['procedimentos_list'] = procedimentos
             clinica['equipe_list'] = equipe
             clinica['convenios_list'] = clinica['convenios'].split(', ') if clinica['convenios'] else []
             
             return render_template('clinicaPerfil.html', clinica=clinica)
+
         except Exception as e:
-            print(f"Erro ao buscar clínica: {e}")
-            return "Erro interno", 500
+            # Em caso de erro, imprime no terminal e mostra na tela para facilitar o diagnóstico
+            print(f"ERRO CRÍTICO NA ROTA DA CLÍNICA: {e}")
+            import traceback
+            traceback.print_exc()
+            return f"<h1>Erro Interno:</h1><p>{str(e)}</p>", 500
 
     # -------------------------------
     # ROTAS: Profissional

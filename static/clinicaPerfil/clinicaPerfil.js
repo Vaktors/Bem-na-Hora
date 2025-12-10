@@ -52,6 +52,86 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            fecharModalAvaliacao();
+        }
+    });
+
+    // Lógica das estrelas
+    document.getElementById('starRating').addEventListener('click', (e) => {
+        if (e.target.tagName === 'I') {
+            const rating = parseInt(e.target.getAttribute('data-rating'));
+            document.getElementById('ratingValue').value = rating;
+
+            const stars = document.querySelectorAll('#starRating i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.className = 'fa-solid fa-star';
+                } else {
+                    star.className = 'fa-regular fa-star';
+                }
+            });
+        }
+    });
+
+    // Contador de caracteres
+    document.getElementById('comentario').addEventListener('input', (e) => {
+        const count = e.target.value.length;
+        document.getElementById('charCount').textContent = `${count}/500 caracteres`;
+    });
+
+    // Submissão do formulário
+    document.getElementById('formAvaliacao').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const nota = document.getElementById('ratingValue').value;
+        const comentario = document.getElementById('comentario').value.trim();
+
+        if (nota === '0') {
+            alert('Por favor, selecione uma avaliação em estrelas.');
+            return;
+        }
+
+        const btnSubmit = document.getElementById('btnSubmitAvaliacao');
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Enviando...';
+
+        try {
+            const response = await fetch('/api/avaliacao', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tipo: tipoAvaliacaoAtual,
+                    id: idAvaliacaoAtual,
+                    nota: parseInt(nota),
+                    comentario: comentario
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Avaliação enviada com sucesso!');
+                fecharModalAvaliacao();
+                // Recarregar a página para atualizar as avaliações
+                window.location.reload();
+            } else {
+                alert(result.message || 'Erro ao enviar avaliação.');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro de conexão. Tente novamente.');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Enviar Avaliação';
+        }
+    });
+
+    // Fechar modal ao clicar fora
+    document.getElementById('modalAvaliacao').addEventListener('click', (e) => {
+        if (e.target.id === 'modalAvaliacao') {
+            fecharModalAvaliacao();
         }
     });
 
@@ -69,6 +149,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 200);
                 }
             }
+            
+            // --- FUNÇÕES DE AVALIAÇÃO ---
+            function abrirModalAvaliacao(tipo, id) {
+                tipoAvaliacaoAtual = tipo;
+                idAvaliacaoAtual = id;
+            
+                document.getElementById('modalTipo').textContent = tipo === 'clinica' ? 'Clínica' : 'Profissional';
+                document.getElementById('modalAvaliacao').style.display = 'flex';
+            
+                // Resetar formulário
+                document.getElementById('ratingValue').value = '0';
+                document.getElementById('comentario').value = '';
+                document.getElementById('charCount').textContent = '0/500 caracteres';
+            
+                const stars = document.querySelectorAll('#starRating i');
+                stars.forEach(star => star.className = 'fa-regular fa-star');
+            }
+            
+            function fecharModalAvaliacao() {
+                document.getElementById('modalAvaliacao').style.display = 'none';
+                tipoAvaliacaoAtual = null;
+                idAvaliacaoAtual = null;
+            }
+            
+            function verMaisAvaliacoes(tipo, id) {
+                // Por enquanto, apenas um placeholder - pode ser implementado para carregar mais avaliações
+                alert('Funcionalidade "Ver mais avaliações" será implementada em breve!');
+            }
         });
     });
 
@@ -83,6 +191,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Variável global para o mapa
 let mapInstance = null;
+
+// Variáveis para avaliação
+let tipoAvaliacaoAtual = null;
+let idAvaliacaoAtual = null;
 
 function initMap() {
     const mapElement = document.getElementById('map');
