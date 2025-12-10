@@ -1538,6 +1538,120 @@ def register_routes(app, mail):
         return render_template('perfil.html', usuario=usuario)
 
     # -------------------------------
+    # API: Buscar mais avaliações
+    # -------------------------------
+
+    @app.route('/api/avaliacoes/<tipo>/<int:id_entidade>', methods=['GET'])
+    def api_get_avaliacoes(tipo, id_entidade):
+        try:
+            offset = int(request.args.get('offset', 0))
+            limit = int(request.args.get('limit', 6))
+
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+
+            if tipo == 'clinica':
+                cursor.execute("""
+                    SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
+                    FROM avaliacoes av
+                    JOIN agendamento a ON av.idAgendamento = a.idAgendamento
+                    JOIN usuario u ON a.idUsuario = u.idUsuario
+                    WHERE a.idClinica = %s
+                    ORDER BY av.data_avaliacao DESC
+                    LIMIT %s OFFSET %s
+                """, (id_entidade, limit, offset))
+            elif tipo == 'profissional':
+                cursor.execute("""
+                    SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
+                    FROM avaliacoes av
+                    JOIN agendamento a ON av.idAgendamento = a.idAgendamento
+                    JOIN usuario u ON a.idUsuario = u.idUsuario
+                    WHERE a.idProfissional = %s
+                    ORDER BY av.data_avaliacao DESC
+                    LIMIT %s OFFSET %s
+                """, (id_entidade, limit, offset))
+            else:
+                cursor.close()
+                conn.close()
+                return jsonify({'success': False, 'message': 'Tipo inválido'}), 400
+
+            avaliacoes = cursor.fetchall()
+            cursor.close()
+            conn.close()
+
+            return jsonify({'success': True, 'avaliacoes': avaliacoes})
+        except Exception as e:
+            print(f"Erro ao buscar avaliações: {e}")
+            return jsonify({'success': False, 'message': 'Erro interno'}), 500
+
+    # -------------------------------
+    # API: Enviar avaliação
+    # -------------------------------
+
+    @app.route('/api/avaliacao/submit', methods=['POST'])
+    def api_submit_avaliacao():
+        try:
+            if 'user_id' not in session:
+                return jsonify({'success': False, 'message': 'Não autenticado'}), 401
+
+            dados = request.get_json()
+            tipo = dados.get('tipo')  # 'clinica' or 'profissional'
+            id_entidade = dados.get('id_entidade')
+            nota = dados.get('nota')
+            comentario = dados.get('comentario', '').strip()
+
+            if not all([tipo, id_entidade, nota]):
+                return jsonify({'success': False, 'message': 'Dados incompletos'}), 400
+
+            if tipo not in ['clinica', 'profissional']:
+                return jsonify({'success': False, 'message': 'Tipo inválido'}), 400
+
+            if not (1 <= int(nota) <= 5):
+                return jsonify({'success': False, 'message': 'Nota deve ser entre 1 e 5'}), 400
+
+            user_id = session['user_id']
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
+            # Check if user has completed appointment with this entity
+            if tipo == 'clinica':
+                cursor.execute("""
+                    SELECT idAgendamento FROM agendamento
+                    WHERE idUsuario = %s AND idClinica = %s AND status = 'concluido'
+                    LIMIT 1
+                """, (user_id, id_entidade))
+            else:
+                cursor.execute("""
+                    SELECT idAgendamento FROM agendamento
+                    WHERE idUsuario = %s AND idProfissional = %s AND status = 'concluido'
+                    LIMIT 1
+                """, (user_id, id_entidade))
+
+            agendamento = cursor.fetchone()
+            if not agendamento:
+                cursor.close()
+                conn.close()
+                return jsonify({'success': False, 'message': 'Você precisa ter um agendamento concluído para avaliar'}), 400
+
+            id_agendamento = agendamento[0]
+
+            # Insert evaluation
+            cursor.execute("""
+                INSERT INTO avaliacoes (idAgendamento, nota, comentario, data_avaliacao)
+                VALUES (%s, %s, %s, NOW())
+            """, (id_agendamento, nota, comentario))
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            return jsonify({'success': True, 'message': 'Avaliação enviada com sucesso!'})
+        except Exception as e:
+            print(f"Erro ao enviar avaliação: {e}")
+            return jsonify({'success': False, 'message': 'Erro interno'}), 500
+
+    # -------------------------------
     # CONTEXT PROCESSOR
     # -------------------------------
 

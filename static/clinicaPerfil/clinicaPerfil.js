@@ -24,6 +24,130 @@ function switchTab(tabId) {
     }
 }
 
+// --- FUNÇÕES DE AVALIAÇÃO ---
+let currentOffset = 3; // Já temos 3 avaliações iniciais
+
+function verMaisAvaliacoes(tipo, idEntidade) {
+    event.preventDefault(); // Prevent default link behavior
+
+    fetch(`/api/avaliacoes/${tipo}/${idEntidade}?offset=${currentOffset}&limit=6`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const reviewsGrid = document.querySelector('.reviews-grid');
+                const verMaisContainer = document.querySelector('.ver-mais-container');
+
+                data.avaliacoes.forEach(avaliacao => {
+                    const reviewCard = document.createElement('div');
+                    reviewCard.className = 'review-card';
+                    reviewCard.innerHTML = `
+                        <div class="review-header">
+                            <div class="reviewer-avatar">${avaliacao.nome_usuario[0].toUpperCase()}</div>
+                            <div class="reviewer-data">
+                                <strong>${avaliacao.nome_usuario}</strong>
+                                <div class="small-stars">
+                                    ${Array.from({length: 5}, (_, i) =>
+                                        i < avaliacao.nota ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>'
+                                    ).join('')}
+                                </div>
+                            </div>
+                            <span class="review-date">${new Date(avaliacao.data_avaliacao).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <p class="review-text">"${avaliacao.comentario}"</p>
+                    `;
+                    reviewsGrid.appendChild(reviewCard);
+                });
+
+                currentOffset += data.avaliacoes.length;
+
+                // Se retornou menos de 6, significa que não há mais avaliações
+                if (data.avaliacoes.length < 6) {
+                    verMaisContainer.style.display = 'none';
+                }
+            } else {
+                alert('Erro ao carregar mais avaliações');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao carregar mais avaliações');
+        });
+}
+
+function abrirModalAvaliacao(tipo, idEntidade) {
+    const modal = document.getElementById('modalAvaliacao');
+    const modalTipo = document.getElementById('modalTipo');
+    const form = document.getElementById('formAvaliacao');
+
+    modalTipo.textContent = tipo === 'clinica' ? 'Clínica' : 'Profissional';
+    modal.classList.add('show');
+
+    // Reset form
+    form.reset();
+    document.getElementById('ratingValue').value = '0';
+    updateStarRating(0);
+
+    // Set form action
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        enviarAvaliacao(tipo, idEntidade);
+    };
+}
+
+function fecharModalAvaliacao() {
+    document.getElementById('modalAvaliacao').classList.remove('show');
+}
+
+function updateStarRating(rating) {
+    const stars = document.querySelectorAll('#starRating i');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.className = 'fa-solid fa-star';
+        } else {
+            star.className = 'fa-regular fa-star';
+        }
+    });
+    document.getElementById('ratingValue').value = rating;
+}
+
+function enviarAvaliacao(tipo, idEntidade) {
+    const nota = document.getElementById('ratingValue').value;
+    const comentario = document.getElementById('comentario').value;
+
+    if (nota == '0') {
+        alert('Por favor, selecione uma nota');
+        return;
+    }
+
+    fetch('/api/avaliacao/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            tipo: tipo,
+            id_entidade: idEntidade,
+            nota: parseInt(nota),
+            comentario: comentario
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            fecharModalAvaliacao();
+            // Recarregar a página para atualizar as avaliações
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao enviar avaliação');
+    });
+}
+
 // --- LÓGICA DE INTERFACE E MAPA ---
 document.addEventListener('DOMContentLoaded', () => {
     

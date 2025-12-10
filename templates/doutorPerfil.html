@@ -291,6 +291,40 @@
 
     </main>
 
+    <!-- MODAL DE AVALIAÇÃO -->
+    <div id="modalAvaliacao" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Avaliar <span id="modalTipo"></span></h3>
+                <button class="modal-close" onclick="fecharModalAvaliacao()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formAvaliacao">
+                    <div class="rating-section">
+                        <label>Quantas estrelas você dá?</label>
+                        <div class="star-rating" id="starRating">
+                            <i class="fa-regular fa-star" data-rating="1"></i>
+                            <i class="fa-regular fa-star" data-rating="2"></i>
+                            <i class="fa-regular fa-star" data-rating="3"></i>
+                            <i class="fa-regular fa-star" data-rating="4"></i>
+                            <i class="fa-regular fa-star" data-rating="5"></i>
+                        </div>
+                        <input type="hidden" id="ratingValue" name="nota" value="0">
+                    </div>
+                    <div class="comment-section">
+                        <label for="comentario">Comentário (opcional)</label>
+                        <textarea id="comentario" name="comentario" placeholder="Conte sua experiência..." maxlength="500"></textarea>
+                        <small id="charCount">0/500 caracteres</small>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-cancel" onclick="fecharModalAvaliacao()">Cancelar</button>
+                        <button type="submit" class="btn-submit" id="btnSubmitAvaliacao">Enviar Avaliação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- FOOTER -->
     <footer class="site-footer">
         <div class="container">

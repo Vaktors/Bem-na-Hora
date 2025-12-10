@@ -218,31 +218,24 @@
             <!-- Aba Avaliações -->
             <div id="avaliacoes" class="tab-pane">
                 <div class="reviews-summary">
-                    <div class="big-score">{{ clinica.media_avaliacao|default(0) }}</div>
-                    <div class="score-stars">
-                        {% for i in range(5) %}
-                            {% if clinica.media_avaliacao >= i+1 %}
-                                <i class="fa-solid fa-star"></i>
-                            {% elif clinica.media_avaliacao >= i+0.5 %}
-                                <i class="fa-solid fa-star-half-stroke"></i>
-                            {% else %}
-                                <i class="fa-regular fa-star"></i>
-                            {% endif %}
-                        {% endfor %}
-                        <span>({{ clinica.total_avaliacoes|default(0) }} Avaliações)</span>
+                    <div class="score-section">
+                        <div class="big-score">{{ clinica.media_avaliacao|default(0) }}</div>
+                        <div class="score-stars">
+                            {% for i in range(5) %}
+                                {% if clinica.media_avaliacao >= i+1 %}
+                                    <i class="fa-solid fa-star"></i>
+                                {% elif clinica.media_avaliacao >= i+0.5 %}
+                                    <i class="fa-solid fa-star-half-stroke"></i>
+                                {% else %}
+                                    <i class="fa-regular fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span>({{ clinica.total_avaliacoes|default(0) }} Avaliações)</span>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Botões de ação -->
-                <div class="reviews-actions">
                     {% if usuario_logado %}
-                    <button class="btn-secondary" onclick="abrirModalAvaliacao('clinica', {{ clinica.idClinica }})">
+                    <button class="btn-secondary evaluate-btn" onclick="abrirModalAvaliacao('clinica', {{ clinica.idClinica }})">
                         <i class="fa-solid fa-star"></i> Avaliar Clínica
-                    </button>
-                    {% endif %}
-                    {% if clinica.total_avaliacoes > 3 %}
-                    <button class="btn-outline" onclick="verMaisAvaliacoes('clinica', {{ clinica.idClinica }})">
-                        <i class="fa-solid fa-eye"></i> Ver mais avaliações
                     </button>
                     {% endif %}
                 </div>
@@ -274,6 +267,12 @@
                         <p style="text-align: center; color: #777; padding: 40px;">Nenhuma avaliação disponível.</p>
                     {% endif %}
                 </div>
+
+                {% if clinica.total_avaliacoes > 3 %}
+                <div class="ver-mais-container">
+                    <a href="#" onclick="verMaisAvaliacoes('clinica', {{ clinica.idClinica }})" class="ver-mais-link">Ver mais avaliações</a>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Aba Localização -->
@@ -316,7 +315,7 @@
     </main>
 
     <!-- MODAL DE AVALIAÇÃO -->
-    <div id="modalAvaliacao" class="modal-overlay" style="display: none;">
+    <div id="modalAvaliacao" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Avaliar <span id="modalTipo"></span></h3>
