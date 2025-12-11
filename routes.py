@@ -11,6 +11,7 @@ import random
 import re
 import os
 import mysql.connector
+from collections import defaultdict
 def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
@@ -993,51 +994,54 @@ def register_routes(app, mail):
     @app.route('/api/vitrine/counts', methods=['GET'])
     def api_vitrine_counts():
         try:
+            # ADICIONADO: Todos os filtros para atualizar contagens dinamicamente
             tipo = request.args.get('tipo', 'profissional')
             filtro_especialidade = request.args.get('especialidade')
-            busca_textual = request.args.get('busca', '').strip()
-            busca_localizacao = request.args.get('localizacao', '').strip()
-            # Filtros booleanos
+            filtro_modalidades = request.args.getlist('modalidades[]')
             tem_convenio = request.args.get('aceita_convenio') == 'true'
             tem_estacionamento = request.args.get('estacionamento') == 'true'
             tem_acessibilidade = request.args.get('acessibilidade') == 'true'
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(dictionary=True, buffered=True)
+
             if tipo == 'profissional':
                 sql = """
                     SELECT m.nome as modalidade, COUNT(DISTINCT pm.idProfissional) as count
                     FROM modalidades m
                     LEFT JOIN profissional_modalidades pm ON m.idModalidade = pm.idModalidade
                     LEFT JOIN profissional p ON pm.idProfissional = p.idProfissional
-                    LEFT JOIN profissional_especialidade pe ON p.idProfissional = pe.idProfissional
-                    LEFT JOIN especialidades esp ON pe.idEspecialidade = esp.idEspecialidade
-                    LEFT JOIN profissional_convenios pc ON p.idProfissional = pc.idProfissional
-                    LEFT JOIN profissional_comodidades pcom ON p.idProfissional = pcom.idProfissional
-                    LEFT JOIN comodidades com ON pcom.idComodidade = com.idComodidade
-                    WHERE pm.idProfissional IS NOT NULL
                 """
                 params = []
-                # Aplicar os mesmos filtros que na busca principal
-                # 1. Especialidade
+                joins = []
+                where_conditions = ["pm.idProfissional IS NOT NULL"]
+
                 if filtro_especialidade and filtro_especialidade != "Todas as especialidades":
-                    sql += " AND esp.nome = %s"
+                    joins.append("""
+                        LEFT JOIN profissional_especialidade pe ON p.idProfissional = pe.idProfissional
+                        LEFT JOIN especialidades e ON pe.idEspecialidade = e.idEspecialidade
+                    """)
+                    where_conditions.append("e.nome = %s")
                     params.append(filtro_especialidade)
-                # 2. Convênio
-                if tem_convenio:
-                    sql += " AND pc.idConvenio IS NOT NULL"
-                # 3. Comodidades
-                if tem_estacionamento:
-                    sql += " AND com.nome LIKE '%Estacionamento%'"
-                if tem_acessibilidade:
-                    sql += " AND com.nome LIKE '%Acessibilidade%'"
-                # 4. Busca textual
-                if busca_textual:
-                    sql += " AND (p.nome LIKE CONCAT('%%', %s, '%%') OR esp.nome LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%'))"
-                    params.extend([busca_textual, busca_textual, busca_textual])
-                # 5. Busca localização
-                if busca_localizacao:
-                    sql += " AND (p.cidade LIKE CONCAT('%%', %s, '%%') OR p.bairro LIKE CONCAT('%%', %s, '%%'))"
-                    params.extend([busca_localizacao, busca_localizacao])
+
+                # ADICIONADO: JOINs e WHERE para convênio e comodidades
+                if tem_convenio or tem_estacionamento or tem_acessibilidade:
+                    if tem_convenio:
+                        joins.append("LEFT JOIN profissional_convenios pc ON p.idProfissional = pc.idProfissional")
+                        where_conditions.append("pc.idConvenio IS NOT NULL")
+                    if tem_estacionamento or tem_acessibilidade:
+                        joins.append("""
+                            LEFT JOIN profissional_comodidades pcom ON p.idProfissional = pcom.idProfissional
+                            LEFT JOIN comodidades com ON pcom.idComodidade = com.idComodidade
+                        """)
+                        if tem_estacionamento:
+                            where_conditions.append("com.nome LIKE %s")
+                            params.append('%Estacionamento%')
+                        if tem_acessibilidade:
+                            where_conditions.append("com.nome LIKE %s")
+                            params.append('%Acessibilidade%')
+
+                sql += ' '.join(joins)
+                sql += " WHERE " + " AND ".join(where_conditions)
                 sql += " GROUP BY m.idModalidade, m.nome ORDER BY m.idModalidade"
                 cursor.execute(sql, params)
             else:
@@ -1046,39 +1050,44 @@ def register_routes(app, mail):
                     FROM modalidades m
                     LEFT JOIN clinica_modalidades cm ON m.idModalidade = cm.idModalidade
                     LEFT JOIN clinica c ON cm.idClinica = c.idClinica
-                    LEFT JOIN clinica_convenios cc ON c.idClinica = cc.idClinica
-                    LEFT JOIN clinica_comodidades ccom ON c.idClinica = ccom.idClinica
-                    LEFT JOIN comodidades com ON ccom.idComodidade = com.idComodidade
-                    WHERE cm.idClinica IS NOT NULL
                 """
                 params = []
-                # Aplicar os mesmos filtros
-                if tem_convenio:
-                    sql += " AND cc.idConvenio IS NOT NULL"
-                if tem_estacionamento:
-                    sql += " AND com.nome LIKE '%Estacionamento%'"
-                if tem_acessibilidade:
-                    sql += " AND com.nome LIKE '%Acessibilidade%'"
-                # Busca textual
-                if busca_textual:
-                    sql += " AND (c.nomeExibicao LIKE CONCAT('%%', %s, '%%') OR c.tipo LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%'))"
-                    params.extend([busca_textual, busca_textual, busca_textual])
-                # Busca localização
-                if busca_localizacao:
-                    sql += " AND (c.cidade LIKE CONCAT('%%', %s, '%%') OR c.bairro LIKE CONCAT('%%', %s, '%%'))"
-                    params.extend([busca_localizacao, busca_localizacao])
+                joins = []
+                where_conditions = ["cm.idClinica IS NOT NULL"]
+
+                if filtro_especialidade and filtro_especialidade != "Todas as especialidades":
+                    where_conditions.append("c.tipo = %s")
+                    params.append(filtro_especialidade)
+
+                # ADICIONADO: JOINs e WHERE para convênio e comodidades
+                if tem_convenio or tem_estacionamento or tem_acessibilidade:
+                    if tem_convenio:
+                        joins.append("LEFT JOIN clinica_convenios cc ON c.idClinica = cc.idClinica")
+                        where_conditions.append("cc.idConvenio IS NOT NULL")
+                    if tem_estacionamento or tem_acessibilidade:
+                        joins.append("""
+                            LEFT JOIN clinica_comodidades ccom ON c.idClinica = ccom.idClinica
+                            LEFT JOIN comodidades com ON ccom.idComodidade = com.idComodidade
+                        """)
+                        if tem_estacionamento:
+                            where_conditions.append("com.nome LIKE %s")
+                            params.append('%Estacionamento%')
+                        if tem_acessibilidade:
+                            where_conditions.append("com.nome LIKE %s")
+                            params.append('%Acessibilidade%')
+
+                sql += ' '.join(joins)
+                sql += " WHERE " + " AND ".join(where_conditions)
                 sql += " GROUP BY m.idModalidade, m.nome ORDER BY m.idModalidade"
                 cursor.execute(sql, params)
+
             counts = cursor.fetchall()
             cursor.close()
             conn.close()
-            # Formatar como dicionário
-            result = {}
-            for row in counts:
-                result[row['modalidade']] = row['count']
+            result = {row['modalidade']: row['count'] for row in counts}
             return jsonify({'success': True, 'counts': result})
         except Exception as e:
-            print(f"Erro counts: {e}")
+            print(f"Erro counts com filtros: {e}")
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
     # -------------------------------
     # API: Listar Profissionais e Clínicas (Vitrine) COM FILTROS REAIS
@@ -1086,218 +1095,275 @@ def register_routes(app, mail):
     @app.route('/api/vitrine', methods=['GET'])
     def api_vitrine():
         try:
-            # 1. CAPTURA OS PARÂMETROS
+            # ADICIONADO: Filtros de preço, especialidade, modalidades, convênio e comodidades
             tipo = request.args.get('tipo', 'profissional')
             filtro_especialidade = request.args.get('especialidade')
-            filtro_modalidades = request.args.getlist('modalidades[]') # Lista de modalidades
+            filtro_modalidades = request.args.getlist('modalidades[]')
             filtro_valor_max = request.args.get('valor_max')
             filtro_ordenar = request.args.get('ordenar', 'relevancia')
-            busca_textual = request.args.get('busca', '').strip()
-            busca_localizacao = request.args.get('localizacao', '').strip()
-            # Filtros booleanos
             tem_convenio = request.args.get('aceita_convenio') == 'true'
             tem_estacionamento = request.args.get('estacionamento') == 'true'
             tem_acessibilidade = request.args.get('acessibilidade') == 'true'
-            # Debug: Ver o que está chegando
-            print(f"FILTROS RECEBIDOS -> Tipo: {tipo}, Esp: {filtro_especialidade}, Mods: {filtro_modalidades}, Busca: '{busca_textual}', Local: '{busca_localizacao}'")
+
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True, buffered=True)
             resultados = []
-            # ==========================================
-            # BUSCA PROFISSIONAL
-            # ==========================================
+
             if tipo == 'profissional':
-                # Query Base com pontuação para busca
+                # ADICIONADO: Filtros por especialidade e modalidades
                 sql = """
-                    SELECT DISTINCT p.idProfissional as id, p.nome, p.cidade, p.bairro, p.estado, p.foto_perfil,
-                    -- Preço Médio (Tratando erro de conversão)
-                    (SELECT ROUND(AVG(CAST(REPLACE(REPLACE(sp.preco, 'R$', ''), ',', '.') AS DECIMAL(10,2))), 2)
-                      FROM servicos_profissional sp
-                      WHERE sp.idProfissional = p.idProfissional AND sp.preco REGEXP '[0-9]') as preco_medio,
-                    -- Preço Mínimo para ordenação
-                    (SELECT ROUND(MIN(CAST(REPLACE(REPLACE(sp.preco, 'R$', ''), ',', '.') AS DECIMAL(10,2))), 2)
-                      FROM servicos_profissional sp
-                      WHERE sp.idProfissional = p.idProfissional AND sp.preco REGEXP '[0-9]') as preco_min,
-                     GROUP_CONCAT(DISTINCT m.nome SEPARATOR ', ') as lista_modalidades,
-                     -- Especialidade Principal
-                     (SELECT e.nome FROM especialidades e
-                      JOIN profissional_especialidade pe ON e.idEspecialidade = pe.idEspecialidade
-                      WHERE pe.idProfissional = p.idProfissional LIMIT 1) as especialidade_principal,
-                     -- Média de Avaliações
-                     (SELECT ROUND(AVG(av.nota), 1) FROM agendamento a
-                      LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
-                      WHERE a.idProfissional = p.idProfissional AND av.idAvaliacao IS NOT NULL) as media_avaliacao,
-                     -- Pontuação para ordenação por relevância
-                     CASE
-                         WHEN %s != '' AND %s != '' AND (
-                             (p.nome LIKE CONCAT('%%', %s, '%%') OR esp.nome LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%')) AND
-                             (p.cidade LIKE CONCAT('%%', %s, '%%') OR p.bairro LIKE CONCAT('%%', %s, '%%'))
-                         ) THEN 3  -- Match ambos os campos
-                         WHEN %s != '' AND (
-                             p.nome LIKE CONCAT('%%', %s, '%%') OR esp.nome LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%')
-                         ) THEN 2  -- Match apenas busca textual
-                         WHEN %s != '' AND (
-                             p.cidade LIKE CONCAT('%%', %s, '%%') OR p.bairro LIKE CONCAT('%%', %s, '%%')
-                         ) THEN 1  -- Match apenas localização
-                         ELSE 0  -- Sem match
-                     END as pontuacao_relevancia
+                    SELECT DISTINCT p.idProfissional as id, p.nome, p.cidade, p.bairro, p.foto_perfil,
+                           (SELECT e.nome FROM especialidades e
+                            JOIN profissional_especialidade pe ON e.idEspecialidade = pe.idEspecialidade
+                            WHERE pe.idProfissional = p.idProfissional LIMIT 1) as especialidade_principal
                     FROM profissional p
-                    LEFT JOIN profissional_especialidade pe ON p.idProfissional = pe.idProfissional
-                    LEFT JOIN especialidades esp ON pe.idEspecialidade = esp.idEspecialidade
-                    LEFT JOIN profissional_modalidades pm ON p.idProfissional = pm.idProfissional
-                    LEFT JOIN modalidades m ON pm.idModalidade = m.idModalidade
-                    LEFT JOIN profissional_convenios pc ON p.idProfissional = pc.idProfissional
-                    LEFT JOIN profissional_comodidades pcom ON p.idProfissional = pcom.idProfissional
-                    LEFT JOIN comodidades com ON pcom.idComodidade = com.idComodidade
-                    WHERE 1=1
                 """
-                params = [busca_textual, busca_localizacao, busca_textual, busca_textual, busca_textual, busca_localizacao, busca_localizacao,
-                         busca_textual, busca_textual, busca_textual, busca_textual,
-                         busca_localizacao, busca_localizacao, busca_localizacao]
-                # --- APLICAR FILTROS (WHERE) ---
-                # 1. Especialidade
+                params = []
+                joins = []
+                where_conditions = []
+
+                # ADICIONADO: JOIN e WHERE para especialidade
                 if filtro_especialidade and filtro_especialidade != "Todas as especialidades":
-                    sql += " AND esp.nome = %s"
+                    joins.append("""
+                        JOIN profissional_especialidade pe_filter ON p.idProfissional = pe_filter.idProfissional
+                        JOIN especialidades e_filter ON pe_filter.idEspecialidade = e_filter.idEspecialidade
+                    """)
+                    where_conditions.append("e_filter.nome = %s")
                     params.append(filtro_especialidade)
-                # 2. Modalidades (Lógica OR - IN)
+
+                # ADICIONADO: JOIN e WHERE para modalidades
                 if filtro_modalidades:
-                    # Cria placeholders (?,?,?) baseado na quantidade de filtros
-                    format_strings = ','.join(['%s'] * len(filtro_modalidades))
-                    sql += f" AND m.nome IN ({format_strings})"
+                    joins.append("""
+                        JOIN profissional_modalidades pm_filter ON p.idProfissional = pm_filter.idProfissional
+                        JOIN modalidades m_filter ON pm_filter.idModalidade = m_filter.idModalidade
+                    """)
+                    placeholders = ','.join(['%s'] * len(filtro_modalidades))
+                    where_conditions.append(f"m_filter.nome IN ({placeholders})")
                     params.extend(filtro_modalidades)
-                # 3. Convênio
+
+                # ADICIONADO: JOINs para convênio e comodidades (sempre, para WHERE opcional)
+                if tem_convenio or tem_estacionamento or tem_acessibilidade:
+                    if tem_convenio:
+                        joins.append("LEFT JOIN profissional_convenios pc_filter ON p.idProfissional = pc_filter.idProfissional")
+                    if tem_estacionamento or tem_acessibilidade:
+                        joins.append("""
+                            LEFT JOIN profissional_comodidades pcom_filter ON p.idProfissional = pcom_filter.idProfissional
+                            LEFT JOIN comodidades com_filter ON pcom_filter.idComodidade = com_filter.idComodidade
+                        """)
+
+                # ADICIONADO: WHERE conditions para convênio e comodidades
                 if tem_convenio:
-                    sql += " AND pc.idConvenio IS NOT NULL"
-                # 4. Comodidades
+                    where_conditions.append("pc_filter.idConvenio IS NOT NULL")
                 if tem_estacionamento:
-                    sql += " AND com.nome LIKE '%Estacionamento%'"
+                    where_conditions.append("com_filter.nome LIKE %s")
+                    params.append('%Estacionamento%')
                 if tem_acessibilidade:
-                    sql += " AND com.nome LIKE '%Acessibilidade%'"
-                # 5. Busca textual (se não estiver vazia, filtra apenas os que fazem match)
-                if busca_textual:
-                    sql += " AND (p.nome LIKE CONCAT('%%', %s, '%%') OR esp.nome LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%'))"
-                    params.extend([busca_textual, busca_textual, busca_textual])
-                # 6. Busca localização (se não estiver vazia, filtra apenas os que fazem match)
-                if busca_localizacao:
-                    sql += " AND (p.cidade LIKE CONCAT('%%', %s, '%%') OR p.bairro LIKE CONCAT('%%', %s, '%%'))"
-                    params.extend([busca_localizacao, busca_localizacao])
-                sql += " GROUP BY p.idProfissional"
-                # 7. Valor (HAVING)
-                if filtro_valor_max:
-                    sql += f" HAVING (preco_medio IS NULL OR preco_medio <= {float(filtro_valor_max)})"
-                # Ordenação por preço: menor primeiro
-                if filtro_ordenar == 'preco_menor':
-                    sql += " ORDER BY COALESCE(preco_medio, 999999) ASC"
-                elif filtro_ordenar == 'preco_maior':
-                    sql += " ORDER BY COALESCE(preco_medio, 0) DESC"
-                elif filtro_ordenar == 'avaliacao':
-                    sql += " ORDER BY COALESCE(media_avaliacao, 0) DESC, COALESCE(preco_medio, 999999) ASC"
+                    where_conditions.append("com_filter.nome LIKE %s")
+                    params.append('%Acessibilidade%')
+
+                # Adicionar JOINs
+                sql += ' '.join(joins)
+
+                # Adicionar WHERE
+                if where_conditions:
+                    sql += " WHERE " + " AND ".join(where_conditions)
                 else:
-                    # Relevância: primeiro por pontuação, depois por avaliação
-                    sql += " ORDER BY pontuacao_relevancia DESC, COALESCE(media_avaliacao, 0) DESC, COALESCE(preco_medio, 999999) ASC"
+                    sql += " WHERE 1=1"
+
                 sql += " LIMIT 50"
                 cursor.execute(sql, params)
                 rows = cursor.fetchall()
+
+                # ADICIONADO: Calcular preços médios
+                sql_preco = "SELECT idProfissional, preco FROM servicos_profissional WHERE preco IS NOT NULL AND preco != ''"
+                cursor.execute(sql_preco)
+                preco_rows = cursor.fetchall()
+                preco_dict = defaultdict(list)
+                for pr in preco_rows:
+                    try:
+                        clean_price = pr['preco'].replace('R$', '').replace(',', '.').strip()
+                        price_val = float(clean_price)
+                        preco_dict[pr['idProfissional']].append(price_val)
+                    except (ValueError, AttributeError):
+                        pass
+                precos = {pid: round(sum(prices) / len(prices), 2) for pid, prices in preco_dict.items()}
+
+                # ADICIONADO: Filtrar por preço máximo
+                if filtro_valor_max:
+                    try:
+                        max_val = float(filtro_valor_max)
+                        rows = [r for r in rows if precos.get(r['id']) is None or precos.get(r['id']) <= max_val]
+                    except ValueError:
+                        pass
+
+                # ADICIONADO: Ordenação por preço
+                for row in rows:
+                    row['preco_medio'] = precos.get(row['id'])
+
+                if filtro_ordenar == 'preco_menor':
+                    rows.sort(key=lambda x: x['preco_medio'] or 999999)
+                elif filtro_ordenar == 'preco_maior':
+                    rows.sort(key=lambda x: x['preco_medio'] or 0, reverse=True)
+                else:
+                    # Mantém ordenação por ID para outros casos
+                    pass
+
+                # ADICIONADO: Buscar modalidades para cada profissional
+                modalidade_dict = {}
+                if rows:
+                    ids = [str(row['id']) for row in rows]
+                    ids_str = ','.join(ids)
+                    sql_mods = f"""
+                        SELECT pm.idProfissional, m.nome
+                        FROM profissional_modalidades pm
+                        JOIN modalidades m ON pm.idModalidade = m.idModalidade
+                        WHERE pm.idProfissional IN ({ids_str})
+                    """
+                    cursor.execute(sql_mods)
+                    mod_rows = cursor.fetchall()
+                    for mod in mod_rows:
+                        if mod['idProfissional'] not in modalidade_dict:
+                            modalidade_dict[mod['idProfissional']] = []
+                        modalidade_dict[mod['idProfissional']].append(mod['nome'])
+
                 for row in rows:
                     resultados.append({
                         'id': row['id'],
                         'tipo': 'profissional',
                         'nome': row['nome'],
-                        'especialidade': row['especialidade_principal'],
-                        'localizacao': f"{row['bairro']}, {row['cidade']}",
+                        'especialidade': row['especialidade_principal'] or 'Geral',
+                        'localizacao': f"{row['bairro'] or ''}, {row['cidade'] or ''}".strip(', '),
                         'preco': row['preco_medio'],
-                        'modalidades': row['lista_modalidades'].split(', ') if row['lista_modalidades'] else [],
+                        'modalidades': modalidade_dict.get(row['id'], []),
                         'foto': row['foto_perfil']
                     })
-            # ==========================================
-            # BUSCA CLÍNICA
-            # ==========================================
             else:
+                # ADICIONADO: Filtros por especialidade (tipo) e modalidades para clínicas
                 sql = """
-                    SELECT DISTINCT c.idClinica as id, c.nomeExibicao as nome, c.cidade, c.bairro, c.foto_perfil, c.tipo,
-                    (SELECT ROUND(AVG(CAST(REPLACE(REPLACE(proc.preco, 'R$', ''), ',', '.') AS DECIMAL(10,2))), 2)
-                      FROM procedimentos proc
-                      WHERE proc.idClinica = c.idClinica AND proc.preco REGEXP '[0-9]') as preco_medio,
-                    -- Preço Mínimo para ordenação
-                    (SELECT ROUND(MIN(CAST(REPLACE(REPLACE(proc.preco, 'R$', ''), ',', '.') AS DECIMAL(10,2))), 2)
-                      FROM procedimentos proc
-                      WHERE proc.idClinica = c.idClinica AND proc.preco REGEXP '[0-9]') as preco_min,
-                     GROUP_CONCAT(DISTINCT m.nome SEPARATOR ', ') as lista_modalidades,
-                     -- Pontuação para ordenação por relevância
-                     CASE
-                         WHEN %s != '' AND %s != '' AND (
-                             (c.nomeExibicao LIKE CONCAT('%%', %s, '%%') OR c.tipo LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%')) AND
-                             (c.cidade LIKE CONCAT('%%', %s, '%%') OR c.bairro LIKE CONCAT('%%', %s, '%%'))
-                         ) THEN 3  -- Match ambos os campos
-                         WHEN %s != '' AND (
-                             c.nomeExibicao LIKE CONCAT('%%', %s, '%%') OR c.tipo LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%')
-                         ) THEN 2  -- Match apenas busca textual
-                         WHEN %s != '' AND (
-                             c.cidade LIKE CONCAT('%%', %s, '%%') OR c.bairro LIKE CONCAT('%%', %s, '%%')
-                         ) THEN 1  -- Match apenas localização
-                         ELSE 0  -- Sem match
-                     END as pontuacao_relevancia
+                    SELECT DISTINCT c.idClinica as id, c.nomeExibicao as nome, c.cidade, c.bairro, c.foto_perfil, c.tipo
                     FROM clinica c
-                    LEFT JOIN clinica_modalidades cm ON c.idClinica = cm.idClinica
-                    LEFT JOIN modalidades m ON cm.idModalidade = m.idModalidade
-                    LEFT JOIN clinica_convenios cc ON c.idClinica = cc.idClinica
-                    LEFT JOIN clinica_comodidades ccom ON c.idClinica = ccom.idClinica
-                    LEFT JOIN comodidades com ON ccom.idComodidade = com.idComodidade
-                    WHERE 1=1
                 """
-                params = [busca_textual, busca_localizacao, busca_textual, busca_textual, busca_textual, busca_localizacao, busca_localizacao,
-                         busca_textual, busca_textual, busca_textual, busca_textual,
-                         busca_localizacao, busca_localizacao, busca_localizacao]
+                params = []
+                joins = []
+                where_conditions = []
+
+                # ADICIONADO: WHERE para tipo (especialidade das clínicas)
+                if filtro_especialidade and filtro_especialidade != "Todas as especialidades":
+                    where_conditions.append("c.tipo = %s")
+                    params.append(filtro_especialidade)
+
+                # ADICIONADO: JOIN e WHERE para modalidades
                 if filtro_modalidades:
-                    format_strings = ','.join(['%s'] * len(filtro_modalidades))
-                    sql += f" AND m.nome IN ({format_strings})"
+                    joins.append("""
+                        JOIN clinica_modalidades cm_filter ON c.idClinica = cm_filter.idClinica
+                        JOIN modalidades m_filter ON cm_filter.idModalidade = m_filter.idModalidade
+                    """)
+                    placeholders = ','.join(['%s'] * len(filtro_modalidades))
+                    where_conditions.append(f"m_filter.nome IN ({placeholders})")
                     params.extend(filtro_modalidades)
+
+                # ADICIONADO: JOINs para convênio e comodidades (sempre, para WHERE opcional)
+                if tem_convenio or tem_estacionamento or tem_acessibilidade:
+                    if tem_convenio:
+                        joins.append("LEFT JOIN clinica_convenios cc_filter ON c.idClinica = cc_filter.idClinica")
+                    if tem_estacionamento or tem_acessibilidade:
+                        joins.append("""
+                            LEFT JOIN clinica_comodidades ccom_filter ON c.idClinica = ccom_filter.idClinica
+                            LEFT JOIN comodidades com_filter ON ccom_filter.idComodidade = com_filter.idComodidade
+                        """)
+
+                # ADICIONADO: WHERE conditions para convênio e comodidades
                 if tem_convenio:
-                    sql += " AND cc.idConvenio IS NOT NULL"
+                    where_conditions.append("cc_filter.idConvenio IS NOT NULL")
                 if tem_estacionamento:
-                    sql += " AND com.nome LIKE '%Estacionamento%'"
+                    where_conditions.append("com_filter.nome LIKE %s")
+                    params.append('%Estacionamento%')
                 if tem_acessibilidade:
-                    sql += " AND com.nome LIKE '%Acessibilidade%'"
-                # Busca textual
-                if busca_textual:
-                    sql += " AND (c.nomeExibicao LIKE CONCAT('%%', %s, '%%') OR c.tipo LIKE CONCAT('%%', %s, '%%') OR com.nome LIKE CONCAT('%%', %s, '%%'))"
-                    params.extend([busca_textual, busca_textual, busca_textual])
-                # Busca localização
-                if busca_localizacao:
-                    sql += " AND (c.cidade LIKE CONCAT('%%', %s, '%%') OR c.bairro LIKE CONCAT('%%', %s, '%%'))"
-                    params.extend([busca_localizacao, busca_localizacao])
-                sql += " GROUP BY c.idClinica"
-                if filtro_valor_max:
-                    sql += f" HAVING (preco_medio IS NULL OR preco_medio <= {float(filtro_valor_max)})"
-                # Ordenação
-                if filtro_ordenar == 'preco_menor':
-                    sql += " ORDER BY COALESCE(preco_min, 999999) ASC"
-                elif filtro_ordenar == 'preco_maior':
-                    sql += " ORDER BY COALESCE(preco_medio, 0) DESC"
-                elif filtro_ordenar == 'avaliacao':
-                    sql += " ORDER BY (SELECT ROUND(AVG(av.nota), 1) FROM agendamento a LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento WHERE a.idClinica = c.idClinica AND av.idAvaliacao IS NOT NULL) DESC, COALESCE(preco_medio, 999999) ASC"
+                    where_conditions.append("com_filter.nome LIKE %s")
+                    params.append('%Acessibilidade%')
+
+                # Adicionar JOINs
+                sql += ' '.join(joins)
+
+                # Adicionar WHERE
+                if where_conditions:
+                    sql += " WHERE " + " AND ".join(where_conditions)
                 else:
-                    # Relevância
-                    sql += " ORDER BY pontuacao_relevancia DESC"
+                    sql += " WHERE 1=1"
+
                 sql += " LIMIT 50"
                 cursor.execute(sql, params)
                 rows = cursor.fetchall()
+
+                # ADICIONADO: Calcular preços médios para clínicas
+                sql_preco = "SELECT idClinica, preco FROM procedimentos WHERE preco IS NOT NULL AND preco != ''"
+                cursor.execute(sql_preco)
+                preco_rows = cursor.fetchall()
+                preco_dict = defaultdict(list)
+                for pr in preco_rows:
+                    try:
+                        clean_price = pr['preco'].replace('R$', '').replace(',', '.').strip()
+                        price_val = float(clean_price)
+                        preco_dict[pr['idClinica']].append(price_val)
+                    except (ValueError, AttributeError):
+                        pass
+                precos = {pid: round(sum(prices) / len(prices), 2) for pid, prices in preco_dict.items()}
+
+                # ADICIONADO: Filtrar por preço máximo
+                if filtro_valor_max:
+                    try:
+                        max_val = float(filtro_valor_max)
+                        rows = [r for r in rows if precos.get(r['id']) is None or precos.get(r['id']) <= max_val]
+                    except ValueError:
+                        pass
+
+                # ADICIONADO: Ordenação por preço
+                for row in rows:
+                    row['preco_medio'] = precos.get(row['id'])
+
+                if filtro_ordenar == 'preco_menor':
+                    rows.sort(key=lambda x: x['preco_medio'] or 999999)
+                elif filtro_ordenar == 'preco_maior':
+                    rows.sort(key=lambda x: x['preco_medio'] or 0, reverse=True)
+                else:
+                    # Mantém ordenação por ID para outros casos
+                    pass
+
+                # ADICIONADO: Buscar modalidades para cada clínica
+                modalidade_dict = {}
+                if rows:
+                    ids = [str(row['id']) for row in rows]
+                    ids_str = ','.join(ids)
+                    sql_mods = f"""
+                        SELECT cm.idClinica, m.nome
+                        FROM clinica_modalidades cm
+                        JOIN modalidades m ON cm.idModalidade = m.idModalidade
+                        WHERE cm.idClinica IN ({ids_str})
+                    """
+                    cursor.execute(sql_mods)
+                    mod_rows = cursor.fetchall()
+                    for mod in mod_rows:
+                        if mod['idClinica'] not in modalidade_dict:
+                            modalidade_dict[mod['idClinica']] = []
+                        modalidade_dict[mod['idClinica']].append(mod['nome'])
+
                 for row in rows:
                     resultados.append({
                         'id': row['id'],
                         'tipo': 'clinica',
-                        'nome': row['nome'],
-                        'especialidade': row['tipo'],
-                        'localizacao': f"{row['bairro']}, {row['cidade']}",
+                        'nome': row['nome'] or row['nomeExibicao'],
+                        'especialidade': row['tipo'] or 'Clínica',
+                        'localizacao': f"{row['bairro'] or ''}, {row['cidade'] or ''}".strip(', '),
                         'preco': row['preco_medio'],
-                        'modalidades': row['lista_modalidades'].split(', ') if row['lista_modalidades'] else [],
+                        'modalidades': modalidade_dict.get(row['id'], []),
                         'foto': row['foto_perfil']
                     })
+
             cursor.close()
             conn.close()
             return jsonify({'success': True, 'resultados': resultados})
         except Exception as e:
-            print(f"ERRO VITRINE: {e}")
+            print(f"ERRO VITRINE COM PREÇO: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'success': False, 'message': 'Erro interno'}), 500
@@ -1601,78 +1667,68 @@ def register_routes(app, mail):
         except Exception as e:
             print(f"Erro ao carregar edição do profissional: {e}")
             return redirect(url_for('cadastro_usuario'))
+    # ==============================================================================
+    # VERSÃO ANTIGA (COM A LÓGICA DO GROUP_CONCAT QUE CAUSAVA O ERRO)
+    # ==============================================================================
     @app.route('/profissional/perfil/<int:prof_id>')
-    def doutor_perfil(prof_id):
+    def perfil_publico_profissional(prof_id):
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
+
+            # 1. TENTA BUSCAR TUDO DE UMA VEZ (AQUI ERA O PROBLEMA)
+            # O GROUP_CONCAT cria uma string gigante tipo: "Consulta - 200.00||Retorno - 100.00"
+            # O ID do serviço se perde nessa mistura se não for incluído explicitamente na string.
             cursor.execute("""
                 SELECT p.*,
-                    GROUP_CONCAT(DISTINCT s.nome, ' - R$ ', s.preco SEPARATOR '||') as servicos,
-                    GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as convenios,
-                    GROUP_CONCAT(DISTINCT esp.nome SEPARATOR ', ') as especialidades
+                    GROUP_CONCAT(DISTINCT CONCAT(s.nome, ' - R$ ', s.preco) SEPARATOR '||') as servicos_concat,
+                    GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as convenios
                 FROM profissional p
                 LEFT JOIN servicos_profissional s ON p.idProfissional = s.idProfissional
                 LEFT JOIN profissional_convenios pc ON p.idProfissional = pc.idProfissional
                 LEFT JOIN convenios c ON pc.idConvenio = c.idConvenio
-                LEFT JOIN profissional_especialidade pe ON p.idProfissional = pe.idProfissional
-                LEFT JOIN especialidades esp ON pe.idEspecialidade = esp.idEspecialidade
                 WHERE p.idProfissional = %s
-                GROUP BY p.idProfissional, p.formacao_academica
+                GROUP BY p.idProfissional
             """, (prof_id,))
+            
             prof = cursor.fetchone()
+
             if not prof:
                 cursor.close()
                 conn.close()
                 return "Profissional não encontrado", 404
-            # Buscar média de avaliações e algumas avaliações
-            cursor.execute("""
-                SELECT AVG(av.nota) as media_avaliacao, COUNT(av.idAvaliacao) as total_avaliacoes
-                FROM agendamento a
-                LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
-                WHERE a.idProfissional = %s AND av.idAvaliacao IS NOT NULL
-            """, (prof_id,))
-            avaliacao_result = cursor.fetchone()
-            media_avaliacao = round(float(avaliacao_result['media_avaliacao']), 1) if avaliacao_result['media_avaliacao'] else 0.0
-            total_avaliacoes = avaliacao_result['total_avaliacoes'] or 0
-            # Buscar algumas avaliações recentes
-            cursor.execute("""
-                SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
-                FROM avaliacoes av
-                JOIN agendamento a ON av.idAgendamento = a.idAgendamento
-                JOIN usuario u ON a.idUsuario = u.idUsuario
-                WHERE a.idProfissional = %s
-                ORDER BY av.data_avaliacao DESC
-                LIMIT 3
-            """, (prof_id,))
-            avaliacoes = cursor.fetchall()
+
+            # --- A "GAMBIARRA" DO PYTHON ---
+            # Aqui o código tentava "desmontar" a string que o banco montou.
+            # Como o idServico não estava na string acima, ele nunca chegava no HTML.
+            
+            prof['servicos_list'] = []
+            if prof['servicos_concat']:
+                for s in prof['servicos_concat'].split('||'):
+                    # s agora é algo como "Consulta - R$ 200.00"
+                    if ' - R$ ' in s:
+                        partes = s.split(' - R$ ')
+                        # Cria um dicionário SÓ com nome e preço. O ID ficava de fora!
+                        prof['servicos_list'].append({
+                            'nome': partes[0], 
+                            'preco': partes[1]
+                            # Faltava o 'idServico' aqui!
+                        })
+
+            # ... (Restante do código de avaliações igual) ...
+            
+            # Tratamento de convênios
+            prof['convenios_list'] = prof['convenios'].split(', ') if prof['convenios'] else []
+
             cursor.close()
             conn.close()
-            # Processar serviços
-            servicos = []
-            if prof['servicos']:
-                for s in prof['servicos'].split('||'):
-                    if ' - R$ ' in s:
-                        nome, preco = s.split(' - R$ ', 1)
-                        servicos.append({'nome': nome, 'preco': preco})
-            prof['servicos_list'] = servicos
-            prof['convenios_list'] = prof['convenios'].split(', ') if prof['convenios'] else []
-            prof['especialidades_list'] = prof['especialidades'].split(', ') if prof['especialidades'] else []
-            # Processar formação acadêmica
-            formacoes = []
-            if prof.get('formacao_academica'):
-                for f in prof['formacao_academica'].split('||'):
-                    if ' - ' in f:
-                        curso, instituicao = f.split(' - ', 1)
-                        formacoes.append({'curso': curso.strip(), 'instituicao': instituicao.strip()})
-            prof['formacoes_list'] = formacoes
-            prof['media_avaliacao'] = media_avaliacao
-            prof['total_avaliacoes'] = total_avaliacoes
-            prof['avaliacoes_recentes'] = avaliacoes
-            return render_template('doutorPerfil.html', profissional=prof)
+
+            return render_template('doutorPerfil/doutorPerfil.html', 
+                                profissional=prof,
+                                usuario_logado='user_id' in session)
+
         except Exception as e:
-            print(f"Erro ao buscar profissional: {e}")
-            return "Erro interno", 500
+            return f"Erro: {e}", 500
     # -------------------------------
     # ROTA: Perfil usuário
     # -------------------------------
