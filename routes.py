@@ -994,10 +994,12 @@ def register_routes(app, mail):
     @app.route('/api/vitrine/counts', methods=['GET'])
     def api_vitrine_counts():
         try:
-            # ADICIONADO: Todos os filtros para atualizar contagens dinamicamente
+            # ADICIONADO: Todos os filtros incluindo busca textual e localização
             tipo = request.args.get('tipo', 'profissional')
             filtro_especialidade = request.args.get('especialidade')
             filtro_modalidades = request.args.getlist('modalidades[]')
+            busca_textual = request.args.get('busca', '').strip()
+            busca_localizacao = request.args.get('localizacao', '').strip()
             tem_convenio = request.args.get('aceita_convenio') == 'true'
             tem_estacionamento = request.args.get('estacionamento') == 'true'
             tem_acessibilidade = request.args.get('acessibilidade') == 'true'
@@ -1040,6 +1042,21 @@ def register_routes(app, mail):
                             where_conditions.append("com.nome LIKE %s")
                             params.append('%Acessibilidade%')
 
+                # ADICIONADO: WHERE conditions para busca textual e localização
+                # Usando subqueries para evitar dependência de JOINs condicionais
+                if busca_textual:
+                    where_conditions.append("""(p.nome LIKE %s OR
+                        (SELECT e.nome FROM especialidades e
+                         JOIN profissional_especialidade pe ON e.idEspecialidade = pe.idEspecialidade
+                         WHERE pe.idProfissional = p.idProfissional LIMIT 1) LIKE %s OR
+                        EXISTS (SELECT 1 FROM profissional_comodidades pc
+                               JOIN comodidades c ON pc.idComodidade = c.idComodidade
+                               WHERE pc.idProfissional = p.idProfissional AND c.nome LIKE %s))""")
+                    params.extend([f'%{busca_textual}%', f'%{busca_textual}%', f'%{busca_textual}%'])
+                if busca_localizacao:
+                    where_conditions.append("(p.cidade LIKE %s OR p.bairro LIKE %s)")
+                    params.extend([f'%{busca_localizacao}%', f'%{busca_localizacao}%'])
+
                 sql += ' '.join(joins)
                 sql += " WHERE " + " AND ".join(where_conditions)
                 sql += " GROUP BY m.idModalidade, m.nome ORDER BY m.idModalidade"
@@ -1076,6 +1093,18 @@ def register_routes(app, mail):
                             where_conditions.append("com.nome LIKE %s")
                             params.append('%Acessibilidade%')
 
+                # ADICIONADO: WHERE conditions para busca textual e localização
+                # Usando subqueries para evitar dependência de JOINs condicionais
+                if busca_textual:
+                    where_conditions.append("""(c.nomeExibicao LIKE %s OR c.tipo LIKE %s OR
+                        EXISTS (SELECT 1 FROM clinica_comodidades cc
+                               JOIN comodidades com ON cc.idComodidade = com.idComodidade
+                               WHERE cc.idClinica = c.idClinica AND com.nome LIKE %s))""")
+                    params.extend([f'%{busca_textual}%', f'%{busca_textual}%', f'%{busca_textual}%'])
+                if busca_localizacao:
+                    where_conditions.append("(c.cidade LIKE %s OR c.bairro LIKE %s)")
+                    params.extend([f'%{busca_localizacao}%', f'%{busca_localizacao}%'])
+
                 sql += ' '.join(joins)
                 sql += " WHERE " + " AND ".join(where_conditions)
                 sql += " GROUP BY m.idModalidade, m.nome ORDER BY m.idModalidade"
@@ -1095,12 +1124,14 @@ def register_routes(app, mail):
     @app.route('/api/vitrine', methods=['GET'])
     def api_vitrine():
         try:
-            # ADICIONADO: Filtros de preço, especialidade, modalidades, convênio e comodidades
+            # ADICIONADO: Todos os filtros - preço, especialidade, modalidades, convênio, comodidades, localização e busca textual
             tipo = request.args.get('tipo', 'profissional')
             filtro_especialidade = request.args.get('especialidade')
             filtro_modalidades = request.args.getlist('modalidades[]')
             filtro_valor_max = request.args.get('valor_max')
             filtro_ordenar = request.args.get('ordenar', 'relevancia')
+            busca_textual = request.args.get('busca', '').strip()
+            busca_localizacao = request.args.get('localizacao', '').strip()
             tem_convenio = request.args.get('aceita_convenio') == 'true'
             tem_estacionamento = request.args.get('estacionamento') == 'true'
             tem_acessibilidade = request.args.get('acessibilidade') == 'true'
@@ -1161,6 +1192,21 @@ def register_routes(app, mail):
                     where_conditions.append("com_filter.nome LIKE %s")
                     params.append('%Acessibilidade%')
 
+                # ADICIONADO: WHERE conditions para busca textual e localização
+                # Usando subqueries para evitar dependência de JOINs condicionais
+                if busca_textual:
+                    where_conditions.append("""(p.nome LIKE %s OR
+                        (SELECT e.nome FROM especialidades e
+                         JOIN profissional_especialidade pe ON e.idEspecialidade = pe.idEspecialidade
+                         WHERE pe.idProfissional = p.idProfissional LIMIT 1) LIKE %s OR
+                        EXISTS (SELECT 1 FROM profissional_comodidades pc
+                               JOIN comodidades c ON pc.idComodidade = c.idComodidade
+                               WHERE pc.idProfissional = p.idProfissional AND c.nome LIKE %s))""")
+                    params.extend([f'%{busca_textual}%', f'%{busca_textual}%', f'%{busca_textual}%'])
+                if busca_localizacao:
+                    where_conditions.append("(p.cidade LIKE %s OR p.bairro LIKE %s)")
+                    params.extend([f'%{busca_localizacao}%', f'%{busca_localizacao}%'])
+
                 # Adicionar JOINs
                 sql += ' '.join(joins)
 
@@ -1201,9 +1247,11 @@ def register_routes(app, mail):
                     row['preco_medio'] = precos.get(row['id'])
 
                 if filtro_ordenar == 'preco_menor':
-                    rows.sort(key=lambda x: x['preco_medio'] or 999999)
+                    rows.sort(key=lambda x: x['preco_medio'] if x['preco_medio'] is not None else 999999)
                 elif filtro_ordenar == 'preco_maior':
-                    rows.sort(key=lambda x: x['preco_medio'] or 0, reverse=True)
+                    rows.sort(key=lambda x: x['preco_medio'] if x['preco_medio'] is not None else 0, reverse=True)
+                elif filtro_ordenar == 'avaliacao':
+                    rows.sort(key=lambda x: (x['media_avaliacao'] if x['media_avaliacao'] is not None else 0, x['preco_medio'] if x['preco_medio'] is not None else 999999), reverse=True)
                 else:
                     # Mantém ordenação por ID para outros casos
                     pass
@@ -1282,6 +1330,18 @@ def register_routes(app, mail):
                     where_conditions.append("com_filter.nome LIKE %s")
                     params.append('%Acessibilidade%')
 
+                # ADICIONADO: WHERE conditions para busca textual e localização
+                # Usando subqueries para evitar dependência de JOINs condicionais
+                if busca_textual:
+                    where_conditions.append("""(c.nomeExibicao LIKE %s OR c.tipo LIKE %s OR
+                        EXISTS (SELECT 1 FROM clinica_comodidades cc
+                               JOIN comodidades com ON cc.idComodidade = com.idComodidade
+                               WHERE cc.idClinica = c.idClinica AND com.nome LIKE %s))""")
+                    params.extend([f'%{busca_textual}%', f'%{busca_textual}%', f'%{busca_textual}%'])
+                if busca_localizacao:
+                    where_conditions.append("(c.cidade LIKE %s OR c.bairro LIKE %s)")
+                    params.extend([f'%{busca_localizacao}%', f'%{busca_localizacao}%'])
+
                 # Adicionar JOINs
                 sql += ' '.join(joins)
 
@@ -1322,9 +1382,11 @@ def register_routes(app, mail):
                     row['preco_medio'] = precos.get(row['id'])
 
                 if filtro_ordenar == 'preco_menor':
-                    rows.sort(key=lambda x: x['preco_medio'] or 999999)
+                    rows.sort(key=lambda x: x['preco_medio'] if x['preco_medio'] is not None else 999999)
                 elif filtro_ordenar == 'preco_maior':
-                    rows.sort(key=lambda x: x['preco_medio'] or 0, reverse=True)
+                    rows.sort(key=lambda x: x['preco_medio'] if x['preco_medio'] is not None else 0, reverse=True)
+                elif filtro_ordenar == 'avaliacao':
+                    rows.sort(key=lambda x: (x['media_avaliacao'] if x['media_avaliacao'] is not None else 0, x['preco_medio'] if x['preco_medio'] is not None else 999999), reverse=True)
                 else:
                     # Mantém ordenação por ID para outros casos
                     pass
@@ -1720,10 +1782,39 @@ def register_routes(app, mail):
             # Tratamento de convênios
             prof['convenios_list'] = prof['convenios'].split(', ') if prof['convenios'] else []
 
+            # 3. DADOS DE AVALIAÇÃO
+            cursor.execute("""
+                SELECT AVG(av.nota) as media_avaliacao, COUNT(av.idAvaliacao) as total_avaliacoes
+                FROM agendamento a
+                LEFT JOIN avaliacoes av ON a.idAgendamento = av.idAgendamento
+                WHERE a.idProfissional = %s AND av.idAvaliacao IS NOT NULL
+            """, (prof_id,))
+            avaliacao_result = cursor.fetchone()
+
+            media_avaliacao = round(float(avaliacao_result['media_avaliacao']), 1) if avaliacao_result['media_avaliacao'] else 0.0
+            total_avaliacoes = avaliacao_result['total_avaliacoes'] or 0
+
+            # 4. AVALIAÇÕES RECENTES
+            cursor.execute("""
+                SELECT av.nota, av.comentario, av.data_avaliacao, u.nome as nome_usuario
+                FROM avaliacoes av
+                JOIN agendamento a ON av.idAgendamento = a.idAgendamento
+                JOIN usuario u ON a.idUsuario = u.idUsuario
+                WHERE a.idProfissional = %s
+                ORDER BY av.data_avaliacao DESC
+                LIMIT 3
+            """, (prof_id,))
+            avaliacoes = cursor.fetchall()
+
             cursor.close()
             conn.close()
 
-            return render_template('doutorPerfil/doutorPerfil.html', 
+            # Montagem final dos dados
+            prof['media_avaliacao'] = media_avaliacao
+            prof['total_avaliacoes'] = total_avaliacoes
+            prof['avaliacoes_recentes'] = avaliacoes
+
+            return render_template('doutorPerfil.html',
                                 profissional=prof,
                                 usuario_logado='user_id' in session)
 
